@@ -11,6 +11,10 @@ const roomCode =
     params.get("room");
 
 
+const isHost =
+    localStorage.getItem("isHost") === "true";
+
+
 document.getElementById(
     "roomCodeDisplay"
 ).textContent = roomCode;
@@ -36,6 +40,13 @@ function copyRoomCode() {
 // =========================
 
 function startGame() {
+
+    if (!isHost) {
+
+        return;
+
+    }
+
 
     socket.emit(
         "startGame",
@@ -89,8 +100,8 @@ socket.on(
         );
 
 
-        // Only host sees Start Game
-        if (room.host === socket.id) {
+        // Show controls to host
+        if (isHost) {
 
             document.getElementById(
                 "startButton"
@@ -101,7 +112,9 @@ socket.on(
                 "waiting"
             ).style.display = "none";
 
-        } else {
+        }
+
+        else {
 
             document.getElementById(
                 "startButton"
