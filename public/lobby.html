@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Game Lobby | Playroom</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <main class="home">
+
+
+        <div class="logo">
+            PLAYROOM
+        </div>
+
+
+        <section class="panel">
+
+            <p class="eyebrow">
+                GAME ROOM
+            </p>
+
+
+            <h1 id="roomCodeDisplay">
+                ------
+            </h1>
+
+
+            <p>
+                Share this code with everyone
+                you want to play with.
+            </p>
+
+
+            <button
+                class="secondary"
+                onclick="copyRoomCode()"
+            >
+                Copy Room Code
+            </button>
+
+
+        </section>
+
+
+        <section class="panel">
+
+            <h2>
+                Players
+            </h2>
+
+
+            <div id="players"></div>
+
+
+            <button
+                id="startButton"
+                onclick="startGame()"
+            >
+                Start Game
+            </button>
+
+
+            <p id="waiting">
+                Waiting for the host to
+                start the game...
+            </p>
+
+
+        </section>
+
+
+    </main>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="lobby.js"></script>
+
+
+</body>
+
+</html>
