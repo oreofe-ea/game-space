@@ -979,3 +979,412 @@ body:has(#question) {
     }
 }
 ```
+
+/* =========================
+   INTERACTIVE GAME STATES
+========================= */
+
+
+/* =========================
+   SELECTED ANSWER
+========================= */
+
+.answer.selected-answer {
+    background: var(--orange);
+
+    color: var(--white);
+
+    border-color: var(--orange);
+
+    transform: scale(0.98);
+
+    box-shadow:
+        0 8px 20px
+        rgba(249, 115, 22, 0.20);
+}
+
+
+/* =========================
+   CORRECT ANSWER
+========================= */
+
+.answer.correct-answer {
+    background: var(--green);
+
+    color: var(--white);
+
+    border-color: var(--green);
+
+    animation:
+        correctAnswer 0.5s ease;
+}
+
+
+/* =========================
+   WRONG ANSWER
+========================= */
+
+.answer.wrong-answer {
+    background: var(--red);
+
+    color: var(--white);
+
+    border-color: var(--red);
+
+    animation:
+        wrongAnswer 0.45s ease;
+}
+
+
+/* =========================
+   TIMER WARNING
+========================= */
+
+#timer.timer-warning {
+    background: var(--red);
+
+    animation:
+        timerPulse 0.8s infinite;
+}
+
+
+/* =========================
+   ANSWER MESSAGE STATES
+========================= */
+
+#answerMessage.message-correct {
+    background:
+        rgba(
+            34,
+            197,
+            94,
+            0.12
+        );
+
+    color:
+        #15803d;
+}
+
+
+#answerMessage.message-wrong {
+    background:
+        rgba(
+            239,
+            68,
+            68,
+            0.10
+        );
+
+    color:
+        #b91c1c;
+}
+
+
+#answerMessage.message-timeout {
+    background:
+        var(--lavender);
+
+    color:
+        var(--navy);
+}
+
+
+#answerMessage.message-pop {
+    animation:
+        messagePop 0.35s ease;
+}
+
+
+/* =========================
+   QUESTION TRANSITION
+========================= */
+
+#question.question-changing {
+    animation:
+        questionIn 0.45s ease;
+}
+
+
+/* =========================
+   ANSWER TRANSITION
+========================= */
+
+.answer.answer-changing {
+    animation:
+        answerIn 0.4s ease both;
+}
+
+
+/* =========================
+   SCOREBOARD
+========================= */
+
+.score-row {
+    display: grid;
+
+    grid-template-columns:
+        35px
+        1fr
+        auto;
+
+    align-items: center;
+
+    gap: 10px;
+
+    min-height: 52px;
+
+    animation:
+        scoreRowIn 0.35s ease both;
+}
+
+
+.score-position {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 30px;
+
+    font-weight: 900;
+
+    color:
+        var(--navy);
+}
+
+
+.score-name {
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-weight: 800;
+}
+
+
+.score-value {
+    color:
+        var(--orange);
+
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+
+/* =========================
+   WINNER
+========================= */
+
+.score-row.winner {
+    background:
+        var(--lavender);
+
+    border:
+        2px solid
+        var(--orange);
+
+    box-shadow:
+        0 8px 25px
+        rgba(
+            249,
+            115,
+            22,
+            0.12
+        );
+
+    animation:
+        winnerIn 0.6s ease;
+}
+
+
+.final-score-row {
+    min-height: 58px;
+}
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+#question.game-over-animation {
+    animation:
+        gameOverIn 0.7s ease;
+}
+
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes correctAnswer {
+
+    0% {
+        transform: scale(0.98);
+    }
+
+    45% {
+        transform: scale(1.03);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+@keyframes wrongAnswer {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-7px);
+    }
+
+    40% {
+        transform: translateX(7px);
+    }
+
+    60% {
+        transform: translateX(-5px);
+    }
+
+    80% {
+        transform: translateX(5px);
+    }
+}
+
+
+@keyframes timerPulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+@keyframes messagePop {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            translateY(8px)
+            scale(0.96);
+    }
+
+    70% {
+        transform:
+            translateY(0)
+            scale(1.02);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+@keyframes scoreRowIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateX(-8px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateX(0);
+    }
+}
+
+
+@keyframes winnerIn {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            scale(0.96);
+    }
+
+    70% {
+        transform:
+            scale(1.02);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            scale(1);
+    }
+}
+
+
+@keyframes gameOverIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(15px)
+            scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+
+/* =========================
+   MOBILE SCOREBOARD
+========================= */
+
+@media (max-width: 600px) {
+
+    .score-row {
+        grid-template-columns:
+            30px
+            1fr
+            auto;
+
+        gap: 8px;
+    }
+
+    .score-name {
+        font-size: 14px;
+    }
+
+    .score-value {
+        font-size: 14px;
+    }
+
+}
