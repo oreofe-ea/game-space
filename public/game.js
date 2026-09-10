@@ -1,3 +1,4 @@
+```javascript
 const socket = io();
 
 
@@ -9,7 +10,6 @@ const params =
     new URLSearchParams(
         window.location.search
     );
-
 
 const roomCode =
     params.get("room");
@@ -24,25 +24,6 @@ const playerId =
         "playerId"
     );
 
-// =========================
-// TELL SERVER GAME PAGE IS READY
-// =========================
-
-socket.on(
-    "connect",
-    () => {
-
-        socket.emit(
-            "gameReady",
-            {
-                roomCode: roomCode,
-                playerId: playerId
-            }
-        );
-
-    }
-);
-
 
 // =========================
 // GAME VARIABLES
@@ -54,16 +35,93 @@ let timerInterval = null;
 
 let hasAnswered = false;
 
+let currentTimeLimit = 15;
+
+let currentTimeLeft = 15;
+
 
 // =========================
-// ANSWER BUTTONS
+// GAME PAGE READY
 // =========================
+
+socket.on(
+    "connect",
+    () => {
+
+        socket.emit(
+            "gameReady",
+            {
+                roomCode:
+                    roomCode,
+
+                playerId:
+                    playerId
+            }
+        );
+
+    }
+);
+
+
+// =========================
+// GAME READY CONFIRMED
+// =========================
+
+socket.on(
+    "gameReadyConfirmed",
+    () => {
+
+        console.log(
+            "Game page connected and ready."
+        );
+
+    }
+);
+
+
+// =========================
+// DOM ELEMENTS
+// =========================
+
+const questionElement =
+    document.getElementById(
+        "question"
+    );
+
+const questionNumberElement =
+    document.getElementById(
+        "questionNumber"
+    );
+
+const timerElement =
+    document.getElementById(
+        "timer"
+    );
+
+const timerProgress =
+    document.getElementById(
+        "timerProgress"
+    );
+
+const answerMessage =
+    document.getElementById(
+        "answerMessage"
+    );
+
+const scoreboard =
+    document.getElementById(
+        "scoreboard"
+    );
 
 const answerButtons =
     document.querySelectorAll(
         ".answer"
     );
 
+
+// =========================
+// ANSWER BUTTONS
+// =========================
 
 answerButtons.forEach(
     (button) => {
@@ -77,9 +135,9 @@ answerButtons.forEach(
                         button.dataset.index
                     );
 
-
                 submitAnswer(
-                    answerIndex
+                    answerIndex,
+                    button
                 );
 
             }
@@ -94,7 +152,8 @@ answerButtons.forEach(
 // =========================
 
 function submitAnswer(
-    answerIndex
+    answerIndex,
+    selectedButton
 ) {
 
     if (
@@ -106,18 +165,23 @@ function submitAnswer(
 
     }
 
+    hasAnswered =
+        true;
 
-    hasAnswered = true;
 
-
-    // Disable all buttons
-
+    // Highlight selected answer
     answerButtons.forEach(
         (button) => {
 
-            button.disabled = true;
+            button.disabled =
+                true;
 
         }
+    );
+
+
+    selectedButton.classList.add(
+        "selected-answer"
     );
 
 
@@ -151,43 +215,94 @@ socket.on(
         currentQuestion =
             question;
 
-
         hasAnswered =
             false;
 
+        currentTimeLimit =
+            question.timeLimit;
 
-        document.getElementById(
-            "questionNumber"
-        ).textContent =
-            `Question ${question.number}`;
-
-
-        document.getElementById(
-            "question"
-        ).textContent =
-            question.question;
+        currentTimeLeft =
+            question.timeLimit;
 
 
+        // Reset answer buttons
         answerButtons.forEach(
-            (button, index) => {
+            (button) => {
 
                 button.disabled =
                     false;
 
-                button.textContent =
-                    question.answers[index];
+                button.classList.remove(
+                    "selected-answer"
+                );
+
+                button.classList.remove(
+                    "correct-answer"
+                );
+
+                button.classList.remove(
+                    "wrong-answer"
+                );
+
+                button.style.display =
+                    "flex";
 
             }
         );
 
 
-        document.getElementById(
-            "answerMessage"
-        ).classList.add(
+        // Hide previous message
+        answerMessage.classList.add(
             "hidden"
         );
 
 
+        // Question number
+        questionNumberElement.textContent =
+            `Question ${question.number} of ${question.total}`;
+
+
+        // Question text
+        questionElement.classList.remove(
+            "question-changing"
+        );
+
+        // Force browser to restart animation
+        void questionElement.offsetWidth;
+
+        questionElement.classList.add(
+            "question-changing"
+        );
+
+        questionElement.textContent =
+            question.question;
+
+
+        // Answers
+        answerButtons.forEach(
+            (button, index) => {
+
+                button.textContent =
+                    question.answers[index];
+
+                button.classList.remove(
+                    "answer-changing"
+                );
+
+                void button.offsetWidth;
+
+                button.classList.add(
+                    "answer-changing"
+                );
+
+                button.style.animationDelay =
+                    `${index * 0.06}s`;
+
+            }
+        );
+
+
+        // Start timer
         startTimer(
             question.timeLimit
         );
@@ -213,14 +328,35 @@ function startTimer(
         seconds;
 
 
-    const timer =
-        document.getElementById(
-            "timer"
-        );
+    currentTimeLimit =
+        seconds;
+
+    currentTimeLeft =
+        seconds;
 
 
-    timer.textContent =
+    timerElement.textContent =
         timeLeft;
+
+
+    // Reset progress bar
+    if (timerProgress) {
+
+        timerProgress.style.transition =
+            "none";
+
+        timerProgress.style.width =
+            "100%";
+
+        // Force browser repaint
+        void timerProgress.offsetWidth;
+
+        timerProgress.style.transition =
+            `width ${seconds}s linear`;
+
+        timerProgress.style.width =
+            "0%";
+    }
 
 
     timerInterval =
@@ -229,9 +365,35 @@ function startTimer(
 
                 timeLeft--;
 
-
-                timer.textContent =
+                currentTimeLeft =
                     timeLeft;
+
+
+                timerElement.textContent =
+                    Math.max(
+                        0,
+                        timeLeft
+                    );
+
+
+                // Add urgency near the end
+                if (
+                    timeLeft <= 5
+                ) {
+
+                    timerElement.classList.add(
+                        "timer-warning"
+                    );
+
+                }
+
+                else {
+
+                    timerElement.classList.remove(
+                        "timer-warning"
+                    );
+
+                }
 
 
                 if (
@@ -240,6 +402,10 @@ function startTimer(
 
                     clearInterval(
                         timerInterval
+                    );
+
+                    timerElement.classList.remove(
+                        "timer-warning"
                     );
 
 
@@ -261,16 +427,9 @@ function startTimer(
                         );
 
 
-                        document.getElementById(
-                            "answerMessage"
-                        ).textContent =
-                            "Time's up!";
-
-
-                        document.getElementById(
-                            "answerMessage"
-                        ).classList.remove(
-                            "hidden"
+                        showAnswerMessage(
+                            "Time's up!",
+                            "timeout"
                         );
 
                     }
@@ -290,35 +449,154 @@ function startTimer(
 
 socket.on(
     "answerResult",
-    ({ correct, points }) => {
+    ({
+        correct,
+        points
+    }) => {
 
-        const message =
-            document.getElementById(
-                "answerMessage"
+        if (
+            correct
+        ) {
+
+            showAnswerMessage(
+                `Correct! +${points} points 🎉`,
+                "correct"
             );
 
 
-        if (correct) {
+            // Find the selected answer
+            answerButtons.forEach(
+                (button) => {
 
-            message.textContent =
-                `Correct! +${points} points 🎉`;
+                    if (
+                        button.classList.contains(
+                            "selected-answer"
+                        )
+                    ) {
+
+                        button.classList.remove(
+                            "selected-answer"
+                        );
+
+                        button.classList.add(
+                            "correct-answer"
+                        );
+
+                    }
+
+                }
+            );
 
         }
 
         else {
 
-            message.textContent =
-                "Not quite!";
+            showAnswerMessage(
+                "Not quite!",
+                "wrong"
+            );
+
+
+            answerButtons.forEach(
+                (button) => {
+
+                    if (
+                        button.classList.contains(
+                            "selected-answer"
+                        )
+                    ) {
+
+                        button.classList.remove(
+                            "selected-answer"
+                        );
+
+                        button.classList.add(
+                            "wrong-answer"
+                        );
+
+                    }
+
+                }
+            );
 
         }
 
+    }
+);
 
-        message.classList.remove(
-            "hidden"
+
+// =========================
+// ANSWER MESSAGE
+// =========================
+
+function showAnswerMessage(
+    text,
+    type
+) {
+
+    answerMessage.textContent =
+        text;
+
+    answerMessage.classList.remove(
+        "hidden"
+    );
+
+    answerMessage.classList.remove(
+        "message-correct"
+    );
+
+    answerMessage.classList.remove(
+        "message-wrong"
+    );
+
+    answerMessage.classList.remove(
+        "message-timeout"
+    );
+
+
+    if (
+        type ===
+        "correct"
+    ) {
+
+        answerMessage.classList.add(
+            "message-correct"
         );
 
     }
-);
+
+    else if (
+        type ===
+        "wrong"
+    ) {
+
+        answerMessage.classList.add(
+            "message-wrong"
+        );
+
+    }
+
+    else {
+
+        answerMessage.classList.add(
+            "message-timeout"
+        );
+
+    }
+
+
+    // Restart animation
+    answerMessage.classList.remove(
+        "message-pop"
+    );
+
+    void answerMessage.offsetWidth;
+
+    answerMessage.classList.add(
+        "message-pop"
+    );
+
+}
 
 
 // =========================
@@ -329,47 +607,148 @@ socket.on(
     "scoreUpdate",
     (players) => {
 
-        const scoreboard =
-            document.getElementById(
-                "scoreboard"
-            );
-
-
-        scoreboard.innerHTML =
-            "";
-
-
-        players
-            .sort(
-                (a, b) =>
-                    b.score - a.score
-            )
-            .forEach(
-                (player, index) => {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    row.className =
-                        "player";
-
-
-                    row.textContent =
-                        `${index + 1}. ${player.name} — ${player.score}`;
-
-
-                    scoreboard.appendChild(
-                        row
-                    );
-
-                }
-            );
+        renderScoreboard(
+            players
+        );
 
     }
 );
+
+
+// =========================
+// RENDER SCOREBOARD
+// =========================
+
+function renderScoreboard(
+    players
+) {
+
+    if (
+        !scoreboard
+    ) {
+
+        return;
+
+    }
+
+
+    scoreboard.innerHTML =
+        "";
+
+
+    const sortedPlayers =
+        [...players].sort(
+            (a, b) =>
+                b.score -
+                a.score
+        );
+
+
+    sortedPlayers.forEach(
+        (player, index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "player score-row";
+
+
+            // Position
+            const position =
+                document.createElement(
+                    "span"
+                );
+
+            position.className =
+                "score-position";
+
+
+            if (
+                index === 0
+            ) {
+
+                position.textContent =
+                    "🥇";
+
+            }
+
+            else if (
+                index === 1
+            ) {
+
+                position.textContent =
+                    "🥈";
+
+            }
+
+            else if (
+                index === 2
+            ) {
+
+                position.textContent =
+                    "🥉";
+
+            }
+
+            else {
+
+                position.textContent =
+                    `${index + 1}`;
+
+            }
+
+
+            // Name
+            const name =
+                document.createElement(
+                    "span"
+                );
+
+            name.className =
+                "score-name";
+
+            name.textContent =
+                player.name;
+
+
+            // Score
+            const score =
+                document.createElement(
+                    "span"
+                );
+
+            score.className =
+                "score-value";
+
+            score.textContent =
+                player.score;
+
+
+            row.appendChild(
+                position
+            );
+
+            row.appendChild(
+                name
+            );
+
+            row.appendChild(
+                score
+            );
+
+
+            scoreboard.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
 
 
 // =========================
@@ -385,26 +764,44 @@ socket.on(
         );
 
 
-        const question =
-            document.getElementById(
-                "question"
-            );
+        timerElement.textContent =
+            "";
 
 
-        question.textContent =
-            "🏆 Game Over!";
+        timerElement.classList.remove(
+            "timer-warning"
+        );
 
 
-        document.getElementById(
-            "questionNumber"
-        ).textContent =
+        if (
+            timerProgress
+        ) {
+
+            timerProgress.style.transition =
+                "none";
+
+            timerProgress.style.width =
+                "0%";
+
+        }
+
+
+        questionNumberElement.textContent =
             "Final Results";
 
 
-        document.getElementById(
-            "timer"
-        ).textContent =
-            "";
+        questionElement.classList.remove(
+            "question-changing"
+        );
+
+        void questionElement.offsetWidth;
+
+        questionElement.classList.add(
+            "game-over-animation"
+        );
+
+        questionElement.textContent =
+            "🏆 Game Over!";
 
 
         answerButtons.forEach(
@@ -417,58 +814,204 @@ socket.on(
         );
 
 
-        const scoreboard =
-            document.getElementById(
-                "scoreboard"
-            );
+        answerMessage.classList.add(
+            "hidden"
+        );
 
 
-        scoreboard.innerHTML =
-            "";
-
-
-        players
-            .sort(
-                (a, b) =>
-                    b.score - a.score
-            )
-            .forEach(
-                (player, index) => {
-
-                    const row =
-                        document.createElement(
-                            "div"
-                        );
-
-
-                    row.className =
-                        "player";
-
-
-                    row.textContent =
-                        `${index + 1}. ${player.name} — ${player.score} points`;
-
-
-                    scoreboard.appendChild(
-                        row
-                    );
-
-                }
-            );
+        renderFinalScores(
+            players
+        );
 
     }
 );
 
 
 // =========================
-// ERROR
+// FINAL SCOREBOARD
+// =========================
+
+function renderFinalScores(
+    players
+) {
+
+    scoreboard.innerHTML =
+        "";
+
+
+    const sortedPlayers =
+        [...players].sort(
+            (a, b) =>
+                b.score -
+                a.score
+        );
+
+
+    sortedPlayers.forEach(
+        (player, index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "player score-row final-score-row";
+
+
+            if (
+                index === 0
+            ) {
+
+                row.classList.add(
+                    "winner"
+                );
+
+            }
+
+
+            const position =
+                document.createElement(
+                    "span"
+                );
+
+            position.className =
+                "score-position";
+
+
+            if (
+                index === 0
+            ) {
+
+                position.textContent =
+                    "🏆";
+
+            }
+
+            else if (
+                index === 1
+            ) {
+
+                position.textContent =
+                    "🥈";
+
+            }
+
+            else if (
+                index === 2
+            ) {
+
+                position.textContent =
+                    "🥉";
+
+            }
+
+            else {
+
+                position.textContent =
+                    `${index + 1}`;
+
+            }
+
+
+            const name =
+                document.createElement(
+                    "span"
+                );
+
+            name.className =
+                "score-name";
+
+            name.textContent =
+                player.name;
+
+
+            const score =
+                document.createElement(
+                    "span"
+                );
+
+            score.className =
+                "score-value";
+
+            score.textContent =
+                `${player.score} pts`;
+
+
+            row.appendChild(
+                position
+            );
+
+            row.appendChild(
+                name
+            );
+
+            row.appendChild(
+                score
+            );
+
+
+            scoreboard.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+// =========================
+// SOCKET ERROR
 // =========================
 
 socket.on(
     "errorMessage",
     (message) => {
 
-        alert(message);
+        alert(
+            message
+        );
 
     }
 );
+
+
+// =========================
+// CONNECTION ERROR
+// =========================
+
+socket.on(
+    "connect_error",
+    () => {
+
+        if (
+            questionElement
+        ) {
+
+            questionElement.textContent =
+                "Reconnecting to game...";
+
+        }
+
+    }
+);
+
+
+// =========================
+// RECONNECTED
+// =========================
+
+socket.on(
+    "connect",
+    () => {
+
+        console.log(
+            "Connected to Game Space:",
+            socket.id
+        );
+
+    }
+);
+```
