@@ -9,218 +9,381 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// Serve the public folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// Store active game rooms
+// =========================
+// GAME ROOMS
+// =========================
+
 const rooms = {};
 
+const DISCONNECT_GRACE_PERIOD = 30000;
 
-// Generate a random 6-character room code
+
+// =========================
+// GENERATE ROOM CODE
+// =========================
+
 function generateRoomCode() {
+
     return Math.random()
         .toString(36)
         .substring(2, 8)
         .toUpperCase();
+
 }
 
 
-// When someone connects
+// =========================
+// SEND ROOM UPDATE
+// =========================
+
+function sendRoomUpdate(roomCode) {
+
+    const room = rooms[roomCode];
+
+    if (!room) return;
+
+    io.to(roomCode).emit(
+        "roomUpdate",
+        {
+            hostPlayerId: room.hostPlayerId,
+            gameType: room.gameType,
+            status: room.status,
+
+            // Only show currently connected players
+            players: room.players.filter(
+                player => player.connected
+            )
+        }
+    );
+
+}
+
+
+// =========================
+// SOCKET CONNECTION
+// =========================
+
 io.on("connection", (socket) => {
 
-    console.log("Player connected:", socket.id);
+    console.log(
+        "Player connected:",
+        socket.id
+    );
 
 
     // =========================
-    // CREATE GAME ROOM
+    // CREATE ROOM
     // =========================
 
-    socket.on("createRoom", ({ playerName, gameType }) => {
+    socket.on(
+        "createRoom",
+        ({ playerId, playerName, gameType }) => {
 
-        let roomCode = generateRoomCode();
+            if (!playerId || !playerName) {
+                return;
+            }
 
-        // Make sure the room code isn't already being used
-        while (rooms[roomCode]) {
-            roomCode = generateRoomCode();
-        }
+            let roomCode = generateRoomCode();
 
-
-        // Create the room
-        rooms[roomCode] = {
-
-            host: socket.id,
-
-            gameType: gameType,
-
-            status: "lobby",
-
-            players: []
-
-        };
+            while (rooms[roomCode]) {
+                roomCode = generateRoomCode();
+            }
 
 
-        // Add host as first player
-        rooms[roomCode].players.push({
+            rooms[roomCode] = {
 
-            id: socket.id,
+                hostPlayerId: playerId,
 
-            name: playerName,
+                gameType: gameType,
 
-            score: 0
+                status: "lobby",
 
-        });
+                players: []
 
-
-        // Put host inside the Socket.IO room
-        socket.join(roomCode);
-
-        // Remember the room
-        socket.roomCode = roomCode;
+            };
 
 
-        console.log(
-            `${playerName} created room ${roomCode}`
-        );
+            rooms[roomCode].players.push({
+
+                playerId: playerId,
+
+                socketId: socket.id,
+
+                name: playerName,
+
+                score: 0,
+
+                connected: true
+
+            });
 
 
-        // Tell the host the room was created
-        socket.emit("roomCreated", {
+            socket.join(roomCode);
 
-    roomCode: roomCode,
+            socket.roomCode = roomCode;
 
-    gameType: gameType,
-
-    playerId: socket.id,
-
-    isHost: true
-
-});
+            socket.playerId = playerId;
 
 
-        // Send updated room information
-        io.to(roomCode).emit(
-            "roomUpdate",
-            rooms[roomCode]
-        );
-
-    });
-
-
-    // =========================
-    // JOIN GAME ROOM
-    // =========================
-
-    socket.on("joinRoom", ({ roomCode, playerName }) => {
-
-        roomCode = roomCode.toUpperCase();
-
-        const room = rooms[roomCode];
-
-
-        // Room doesn't exist
-        if (!room) {
-
-            socket.emit(
-                "errorMessage",
-                "That room does not exist."
+            console.log(
+                `${playerName} created room ${roomCode}`
             );
 
-            return;
-        }
-
-
-        // Game already started
-        if (room.status !== "lobby") {
 
             socket.emit(
-                "errorMessage",
-                "This game has already started."
+                "roomCreated",
+                {
+                    roomCode: roomCode,
+                    gameType: gameType,
+                    playerId: playerId
+                }
             );
 
-            return;
+
+            sendRoomUpdate(roomCode);
+
         }
+    );
 
 
-        // Add player
-        room.players.push({
+    // =========================
+    // JOIN ROOM
+    // =========================
 
-            id: socket.id,
+    socket.on(
+        "joinRoom",
+        ({ roomCode, playerId, playerName }) => {
 
-            name: playerName,
+            roomCode = roomCode.toUpperCase();
 
-            score: 0
-
-        });
-
-
-        // Join Socket.IO room
-        socket.join(roomCode);
-
-        socket.roomCode = roomCode;
+            const room = rooms[roomCode];
 
 
-        console.log(
-            `${playerName} joined ${roomCode}`
-        );
+            if (!room) {
+
+                socket.emit(
+                    "errorMessage",
+                    "That room does not exist."
+                );
+
+                return;
+            }
 
 
-        // Tell player they successfully joined
-        socket.emit("joinedRoom", {
+            if (room.status !== "lobby") {
 
-    roomCode: roomCode,
+                socket.emit(
+                    "errorMessage",
+                    "This game has already started."
+                );
 
-    gameType: room.gameType,
-
-    playerId: socket.id,
-
-    isHost: false
-
-});
+                return;
+            }
 
 
-        // Update everyone in the room
-        io.to(roomCode).emit(
-            "roomUpdate",
-            room
-        );
+            // Check whether this player is reconnecting
+            const existingPlayer =
+                room.players.find(
+                    player =>
+                        player.playerId === playerId
+                );
 
-    });
+
+            if (existingPlayer) {
+
+                existingPlayer.socketId =
+                    socket.id;
+
+                existingPlayer.connected =
+                    true;
+
+                existingPlayer.name =
+                    playerName;
+
+            }
+
+            else {
+
+                room.players.push({
+
+                    playerId: playerId,
+
+                    socketId: socket.id,
+
+                    name: playerName,
+
+                    score: 0,
+
+                    connected: true
+
+                });
+
+            }
+
+
+            socket.join(roomCode);
+
+            socket.roomCode = roomCode;
+
+            socket.playerId = playerId;
+
+
+            console.log(
+                `${playerName} joined ${roomCode}`
+            );
+
+
+            socket.emit(
+                "joinedRoom",
+                {
+                    roomCode: roomCode,
+                    gameType: room.gameType,
+                    playerId: playerId
+                }
+            );
+
+
+            sendRoomUpdate(roomCode);
+
+        }
+    );
+
+
+    // =========================
+    // RECONNECT TO ROOM
+    // =========================
+
+    socket.on(
+        "reconnectToRoom",
+        ({ roomCode, playerId }) => {
+
+            if (!roomCode || !playerId) {
+                return;
+            }
+
+
+            roomCode =
+                roomCode.toUpperCase();
+
+
+            const room =
+                rooms[roomCode];
+
+
+            if (!room) {
+
+                socket.emit(
+                    "errorMessage",
+                    "This game room no longer exists."
+                );
+
+                return;
+            }
+
+
+            const player =
+                room.players.find(
+                    p =>
+                        p.playerId === playerId
+                );
+
+
+            if (!player) {
+
+                socket.emit(
+                    "errorMessage",
+                    "You are not registered in this room."
+                );
+
+                return;
+            }
+
+
+            // Update the player's new socket
+            player.socketId =
+                socket.id;
+
+            player.connected =
+                true;
+
+
+            socket.join(roomCode);
+
+            socket.roomCode =
+                roomCode;
+
+            socket.playerId =
+                playerId;
+
+
+            console.log(
+                `${player.name} reconnected to ${roomCode}`
+            );
+
+
+            sendRoomUpdate(roomCode);
+
+        }
+    );
 
 
     // =========================
     // START GAME
     // =========================
 
-    socket.on("startGame", ({ roomCode }) => {
+    socket.on(
+        "startGame",
+        ({ roomCode, playerId }) => {
 
-        const room = rooms[roomCode];
+            const room =
+                rooms[roomCode];
 
-        if (!room) return;
+
+            if (!room) return;
 
 
-        // Only host can start
-        if (room.host !== socket.id) {
+            // IMPORTANT:
+            // Host is identified by persistent playerId,
+            // NOT temporary socket.id.
 
-            return;
+            if (
+                room.hostPlayerId !==
+                playerId
+            ) {
+
+                console.log(
+                    "Start game rejected: not host"
+                );
+
+                return;
+            }
+
+
+            room.status =
+                "playing";
+
+
+            console.log(
+                `Game started in room ${roomCode}`
+            );
+
+
+            io.to(roomCode).emit(
+                "gameStarted",
+                {
+                    gameType:
+                        room.gameType
+                }
+            );
 
         }
-
-
-        room.status = "playing";
-
-
-        io.to(roomCode).emit(
-            "gameStarted",
-            {
-                gameType: room.gameType
-            }
-        );
-
-    });
+    );
 
 
     // =========================
-    // PLAYER DISCONNECTS
+    // DISCONNECT
     // =========================
 
     socket.on("disconnect", () => {
@@ -231,52 +394,128 @@ io.on("connection", (socket) => {
         );
 
 
-        for (const roomCode in rooms) {
+        const roomCode =
+            socket.roomCode;
 
-            const room = rooms[roomCode];
+        const playerId =
+            socket.playerId;
 
 
-            const playerIndex =
-                room.players.findIndex(
-                    player => player.id === socket.id
+        if (!roomCode || !playerId) {
+            return;
+        }
+
+
+        const room =
+            rooms[roomCode];
+
+
+        if (!room) {
+            return;
+        }
+
+
+        const player =
+            room.players.find(
+                p =>
+                    p.playerId === playerId
+            );
+
+
+        if (!player) {
+            return;
+        }
+
+
+        // Mark disconnected rather than
+        // immediately deleting the player.
+
+        player.connected =
+            false;
+
+
+        sendRoomUpdate(roomCode);
+
+
+        // Give the player 30 seconds to reconnect.
+        setTimeout(() => {
+
+            const currentRoom =
+                rooms[roomCode];
+
+
+            if (!currentRoom) {
+                return;
+            }
+
+
+            const currentPlayer =
+                currentRoom.players.find(
+                    p =>
+                        p.playerId === playerId
                 );
 
 
-            if (playerIndex !== -1) {
-
-                room.players.splice(
-                    playerIndex,
-                    1
-                );
+            if (!currentPlayer) {
+                return;
+            }
 
 
-                // Update remaining players
-                io.to(roomCode).emit(
-                    "roomUpdate",
-                    room
-                );
+            // If they reconnected,
+            // leave them in the room.
+
+            if (
+                currentPlayer.connected
+            ) {
+
+                return;
 
             }
 
 
-            // Delete empty rooms
-            if (room.players.length === 0) {
+            // Otherwise remove them.
+
+            currentRoom.players =
+                currentRoom.players.filter(
+                    p =>
+                        p.playerId !==
+                        playerId
+                );
+
+
+            sendRoomUpdate(roomCode);
+
+
+            // Delete empty rooms.
+
+            if (
+                currentRoom.players.length ===
+                0
+            ) {
 
                 delete rooms[roomCode];
 
+                console.log(
+                    `Room ${roomCode} deleted`
+                );
+
             }
 
-        }
+        }, DISCONNECT_GRACE_PERIOD);
 
     });
 
 });
 
 
+// =========================
+// START SERVER
+// =========================
+
 server.listen(PORT, () => {
 
     console.log(
-        `Playroom server running on port ${PORT}`
+        `Game Space server running on port ${PORT}`
     );
 
 });
