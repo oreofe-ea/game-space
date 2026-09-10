@@ -2,6 +2,38 @@ const socket = io();
 
 
 // =========================
+// GET OR CREATE PLAYER ID
+// =========================
+
+function getPlayerId() {
+
+    let playerId =
+        localStorage.getItem("playerId");
+
+
+    if (!playerId) {
+
+        playerId =
+            crypto.randomUUID();
+
+        localStorage.setItem(
+            "playerId",
+            playerId
+        );
+
+    }
+
+
+    return playerId;
+
+}
+
+
+const playerId =
+    getPlayerId();
+
+
+// =========================
 // SHOW CREATE GAME
 // =========================
 
@@ -58,20 +90,34 @@ function createGame() {
 
     if (!playerName) {
 
-        alert("Please enter your name.");
+        alert(
+            "Please enter your name."
+        );
 
         return;
 
     }
 
 
-    socket.emit("createRoom", {
+    // Save player's name
+    localStorage.setItem(
+        "playerName",
+        playerName
+    );
 
-        playerName,
 
-        gameType
+    socket.emit(
+        "createRoom",
+        {
 
-    });
+            playerId: playerId,
+
+            playerName: playerName,
+
+            gameType: gameType
+
+        }
+    );
 
 }
 
@@ -99,7 +145,9 @@ function joinGame() {
 
     if (!playerName) {
 
-        alert("Please enter your name.");
+        alert(
+            "Please enter your name."
+        );
 
         return;
 
@@ -108,20 +156,33 @@ function joinGame() {
 
     if (!roomCode) {
 
-        alert("Please enter the room code.");
+        alert(
+            "Please enter the room code."
+        );
 
         return;
 
     }
 
 
-    socket.emit("joinRoom", {
+    localStorage.setItem(
+        "playerName",
+        playerName
+    );
 
-        playerName,
 
-        roomCode
+    socket.emit(
+        "joinRoom",
+        {
 
-    });
+            playerId: playerId,
+
+            playerName: playerName,
+
+            roomCode: roomCode
+
+        }
+    );
 
 }
 
@@ -132,27 +193,25 @@ function joinGame() {
 
 socket.on(
     "roomCreated",
-    ({ roomCode, gameType, playerId, isHost }) => {
+    ({ roomCode, gameType, playerId }) => {
 
         localStorage.setItem(
             "roomCode",
             roomCode
         );
 
+
         localStorage.setItem(
             "gameType",
             gameType
         );
+
 
         localStorage.setItem(
             "playerId",
             playerId
         );
 
-        localStorage.setItem(
-            "isHost",
-            isHost
-        );
 
         window.location.href =
             `/lobby.html?room=${roomCode}`;
@@ -167,27 +226,25 @@ socket.on(
 
 socket.on(
     "joinedRoom",
-    ({ roomCode, gameType, playerId, isHost }) => {
+    ({ roomCode, gameType, playerId }) => {
 
         localStorage.setItem(
             "roomCode",
             roomCode
         );
 
+
         localStorage.setItem(
             "gameType",
             gameType
         );
+
 
         localStorage.setItem(
             "playerId",
             playerId
         );
 
-        localStorage.setItem(
-            "isHost",
-            isHost
-        );
 
         window.location.href =
             `/lobby.html?room=${roomCode}`;
