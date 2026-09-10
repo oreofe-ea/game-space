@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,9 +14,10 @@
         Quiz Arena | Game Space
     </title>
 
+    <!-- v4 forces browsers to load the new CSS -->
     <link
         rel="stylesheet"
-        href="style.css"
+        href="style.css?v=4"
     >
 
 </head>
@@ -27,12 +27,7 @@
 
     <main class="home">
 
-
-        <!-- =========================
-             HEADER
-        ========================== -->
-
-        <div class="game-header">
+        <header class="game-header">
 
             <div class="logo">
                 GAME SPACE
@@ -43,26 +38,18 @@
                 LIVE GAME
             </div>
 
-        </div>
+        </header>
 
 
-        <!-- =========================
-             QUESTION CARD
-        ========================== -->
+        <!-- QUESTION -->
 
         <section
             class="panel question-panel"
         >
 
-
-            <!-- QUESTION HEADER -->
-
             <div class="question-top">
 
-                <div
-                    class="eyebrow"
-                    style="margin: 0;"
-                >
+                <div class="eyebrow">
                     QUIZ ARENA
                 </div>
 
@@ -73,61 +60,65 @@
             </div>
 
 
-            <!-- TIMER -->
-
-            <div class="timer-track">
+            <div class="timer-area">
 
                 <div
-                    id="timerProgress"
-                    class="timer-progress"
-                ></div>
+                    id="timer"
+                    aria-label="Time remaining"
+                >
+                    15
+                </div>
+
+                <div class="timer-track">
+
+                    <div
+                        id="timerProgress"
+                        class="timer-progress"
+                    ></div>
+
+                </div>
 
             </div>
 
-
-            <div
-                id="timer"
-                aria-label="Time remaining"
-            >
-                15
-            </div>
-
-
-            <!-- QUESTION -->
 
             <h1 id="question">
                 Loading question...
             </h1>
 
 
-            <!-- ANSWERS -->
-
             <div id="answers">
 
                 <button
                     class="answer"
                     data-index="0"
+                    type="button"
                 >
                     Loading...
                 </button>
+
 
                 <button
                     class="answer"
                     data-index="1"
+                    type="button"
                 >
                     Loading...
                 </button>
+
 
                 <button
                     class="answer"
                     data-index="2"
+                    type="button"
                 >
                     Loading...
                 </button>
 
+
                 <button
                     class="answer"
                     data-index="3"
+                    type="button"
                 >
                     Loading...
                 </button>
@@ -135,35 +126,28 @@
             </div>
 
 
-            <!-- ANSWER MESSAGE -->
-
             <p
                 id="answerMessage"
                 class="hidden"
             ></p>
 
-
         </section>
 
 
-        <!-- =========================
-             SCOREBOARD
-        ========================== -->
+        <!-- SCOREBOARD -->
 
-        <section
-            class="panel score-panel"
-        >
+        <section class="panel score-panel">
 
             <div class="question-top">
 
                 <div>
 
-                    <p
+                    <div
                         class="eyebrow"
                         style="margin-bottom: 5px;"
                     >
                         CURRENT STANDINGS
-                    </p>
+                    </div>
 
                     <h2>
                         Live Scores
@@ -177,13 +161,12 @@
             <div id="scoreboard">
 
                 <div class="player">
-                    Loading scores...
+                    Connecting to game...
                 </div>
 
             </div>
 
         </section>
-
 
     </main>
 
@@ -193,10 +176,9 @@
     ></script>
 
     <script
-        src="game.js"
+        src="game.js?v=4"
     ></script>
 
 </body>
 
 </html>
-```
