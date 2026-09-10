@@ -206,3 +206,14 @@ h1 {
     }
 
 }
+.player {
+    background: #f5f7fb;
+
+    padding: 14px 16px;
+
+    border-radius: 12px;
+
+    margin-top: 10px;
+
+    font-weight: 700;
+}
