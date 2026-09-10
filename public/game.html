@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Quiz Arena | Game Space
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <main class="home">
+
+
+        <!-- =========================
+             GAME HEADER
+        ========================== -->
+
+        <div class="logo">
+            GAME SPACE
+        </div>
+
+
+        <section class="panel">
+
+
+            <p class="eyebrow">
+                QUIZ ARENA
+            </p>
+
+
+            <div id="questionNumber">
+                Question 1
+            </div>
+
+
+            <div id="timer">
+                15
+            </div>
+
+
+            <h1 id="question">
+                Loading question...
+            </h1>
+
+
+            <!-- =========================
+                 ANSWERS
+            ========================== -->
+
+            <div id="answers">
+
+                <button
+                    class="answer"
+                    data-index="0"
+                >
+                    Loading...
+                </button>
+
+
+                <button
+                    class="answer"
+                    data-index="1"
+                >
+                    Loading...
+                </button>
+
+
+                <button
+                    class="answer"
+                    data-index="2"
+                >
+                    Loading...
+                </button>
+
+
+                <button
+                    class="answer"
+                    data-index="3"
+                >
+                    Loading...
+                </button>
+
+            </div>
+
+
+            <!-- =========================
+                 ANSWER MESSAGE
+            ========================== -->
+
+            <p
+                id="answerMessage"
+                class="hidden"
+            ></p>
+
+
+        </section>
+
+
+        <!-- =========================
+             SCOREBOARD
+        ========================== -->
+
+        <section class="panel">
+
+            <h2>
+                Live Scores
+            </h2>
+
+
+            <div id="scoreboard">
+                Loading scores...
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- SOCKET.IO -->
+
+    <script src="/socket.io/socket.io.js"></script>
+
+
+    <!-- GAME JAVASCRIPT -->
+
+    <script src="game.js"></script>
+
+</body>
+
+</html>
