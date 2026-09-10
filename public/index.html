@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Playroom | Multiplayer Games</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <main class="home">
+
+
+        <div class="logo">
+            PLAYROOM
+        </div>
+
+
+        <div class="hero">
+
+
+            <p class="eyebrow">
+                MULTIPLAYER GAMES
+            </p>
+
+
+            <h1>
+                Think fast.<br>
+                Play together.
+            </h1>
+
+
+            <p class="intro">
+                Quiz your friends, solve puzzles,
+                compete in bingo and challenge
+                your brain.
+            </p>
+
+
+            <div class="buttons">
+
+
+                <button
+                    onclick="showCreate()"
+                >
+                    Create a Game
+                </button>
+
+
+                <button
+                    class="secondary"
+                    onclick="showJoin()"
+                >
+                    Join a Game
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- CREATE GAME -->
+
+        <section
+            id="createSection"
+            class="panel hidden"
+        >
+
+            <h2>
+                Create a game
+            </h2>
+
+
+            <p>
+                Choose a game and invite
+                your friends.
+            </p>
+
+
+            <input
+                id="hostName"
+                type="text"
+                placeholder="Your name"
+                maxlength="20"
+            >
+
+
+            <select id="gameType">
+
+                <option value="quiz">
+                    🎯 Quiz
+                </option>
+
+                <option value="puzzle">
+                    🧩 Puzzle
+                </option>
+
+                <option value="bingo">
+                    🎱 Bingo
+                </option>
+
+                <option value="memory">
+                    🧠 Memory Match
+                </option>
+
+                <option value="scramble">
+                    🔤 Word Scramble
+                </option>
+
+            </select>
+
+
+            <button
+                onclick="createGame()"
+            >
+                Create Room
+            </button>
+
+
+        </section>
+
+
+        <!-- JOIN GAME -->
+
+        <section
+            id="joinSection"
+            class="panel hidden"
+        >
+
+            <h2>
+                Join a game
+            </h2>
+
+
+            <p>
+                Enter the room code from
+                your host.
+            </p>
+
+
+            <input
+                id="playerName"
+                type="text"
+                placeholder="Your name"
+                maxlength="20"
+            >
+
+
+            <input
+                id="roomCode"
+                type="text"
+                placeholder="Room code"
+                maxlength="6"
+            >
+
+
+            <button
+                onclick="joinGame()"
+            >
+                Join Room
+            </button>
+
+
+        </section>
+
+
+    </main>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script src="app.js"></script>
+
+
+</body>
+
+</html>
