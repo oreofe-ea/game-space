@@ -24,6 +24,25 @@ const playerId =
         "playerId"
     );
 
+// =========================
+// TELL SERVER GAME PAGE IS READY
+// =========================
+
+socket.on(
+    "connect",
+    () => {
+
+        socket.emit(
+            "gameReady",
+            {
+                roomCode: roomCode,
+                playerId: playerId
+            }
+        );
+
+    }
+);
+
 
 // =========================
 // GAME VARIABLES
