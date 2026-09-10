@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,40 +29,78 @@
 
 
         <!-- =========================
-             GAME HEADER
+             HEADER
         ========================== -->
 
-        <div class="logo">
-            GAME SPACE
+        <div class="game-header">
+
+            <div class="logo">
+                GAME SPACE
+            </div>
+
+            <div class="game-label">
+                <span>●</span>
+                LIVE GAME
+            </div>
+
         </div>
 
 
-        <section class="panel">
+        <!-- =========================
+             QUESTION CARD
+        ========================== -->
+
+        <section
+            class="panel question-panel"
+        >
 
 
-            <p class="eyebrow">
-                QUIZ ARENA
-            </p>
+            <!-- QUESTION HEADER -->
 
+            <div class="question-top">
 
-            <div id="questionNumber">
-                Question 1
+                <div
+                    class="eyebrow"
+                    style="margin: 0;"
+                >
+                    QUIZ ARENA
+                </div>
+
+                <div id="questionNumber">
+                    Question 1
+                </div>
+
             </div>
 
 
-            <div id="timer">
+            <!-- TIMER -->
+
+            <div class="timer-track">
+
+                <div
+                    id="timerProgress"
+                    class="timer-progress"
+                ></div>
+
+            </div>
+
+
+            <div
+                id="timer"
+                aria-label="Time remaining"
+            >
                 15
             </div>
 
+
+            <!-- QUESTION -->
 
             <h1 id="question">
                 Loading question...
             </h1>
 
 
-            <!-- =========================
-                 ANSWERS
-            ========================== -->
+            <!-- ANSWERS -->
 
             <div id="answers">
 
@@ -72,7 +111,6 @@
                     Loading...
                 </button>
 
-
                 <button
                     class="answer"
                     data-index="1"
@@ -80,14 +118,12 @@
                     Loading...
                 </button>
 
-
                 <button
                     class="answer"
                     data-index="2"
                 >
                     Loading...
                 </button>
-
 
                 <button
                     class="answer"
@@ -99,9 +135,7 @@
             </div>
 
 
-            <!-- =========================
-                 ANSWER MESSAGE
-            ========================== -->
+            <!-- ANSWER MESSAGE -->
 
             <p
                 id="answerMessage"
@@ -116,15 +150,36 @@
              SCOREBOARD
         ========================== -->
 
-        <section class="panel">
+        <section
+            class="panel score-panel"
+        >
 
-            <h2>
-                Live Scores
-            </h2>
+            <div class="question-top">
+
+                <div>
+
+                    <p
+                        class="eyebrow"
+                        style="margin-bottom: 5px;"
+                    >
+                        CURRENT STANDINGS
+                    </p>
+
+                    <h2>
+                        Live Scores
+                    </h2>
+
+                </div>
+
+            </div>
 
 
             <div id="scoreboard">
-                Loading scores...
+
+                <div class="player">
+                    Loading scores...
+                </div>
+
             </div>
 
         </section>
@@ -133,15 +188,15 @@
     </main>
 
 
-    <!-- SOCKET.IO -->
+    <script
+        src="/socket.io/socket.io.js"
+    ></script>
 
-    <script src="/socket.io/socket.io.js"></script>
-
-
-    <!-- GAME JAVASCRIPT -->
-
-    <script src="game.js"></script>
+    <script
+        src="game.js"
+    ></script>
 
 </body>
 
 </html>
+```
