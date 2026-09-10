@@ -167,11 +167,15 @@ io.on("connection", (socket) => {
         // Tell player they successfully joined
         socket.emit("joinedRoom", {
 
-            roomCode: roomCode,
+    roomCode: roomCode,
 
-            gameType: room.gameType
+    gameType: room.gameType,
 
-        });
+    playerId: socket.id,
+
+    isHost: false
+
+});
 
 
         // Update everyone in the room
