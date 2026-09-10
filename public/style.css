@@ -1,0 +1,208 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+
+    min-height: 100vh;
+
+    background: #f5f7fb;
+
+    color: #172033;
+}
+
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+
+button {
+    border: none;
+
+    background: #5b4bff;
+
+    color: white;
+
+    padding: 15px 20px;
+
+    border-radius: 12px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    width: 100%;
+
+    margin-top: 12px;
+
+    transition: 0.2s;
+}
+
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+
+.secondary {
+    background: #e7eaf2;
+
+    color: #172033;
+}
+
+
+input,
+select {
+    width: 100%;
+
+    border: 1px solid #d9deea;
+
+    background: white;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin-top: 12px;
+
+    outline: none;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #5b4bff;
+}
+
+
+.home {
+    width: min(700px, 92%);
+
+    margin: auto;
+
+    padding: 35px 0 60px;
+}
+
+
+.logo {
+    font-size: 18px;
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+}
+
+
+.hero {
+    text-align: center;
+
+    padding: 80px 0 45px;
+}
+
+
+.eyebrow {
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: 3px;
+
+    color: #5b4bff;
+
+    margin-bottom: 20px;
+}
+
+
+h1 {
+    font-size: clamp(45px, 10vw, 76px);
+
+    line-height: 0.95;
+
+    letter-spacing: -3px;
+}
+
+
+.intro {
+    max-width: 500px;
+
+    margin: 25px auto 0;
+
+    color: #697386;
+
+    font-size: 18px;
+
+    line-height: 1.6;
+}
+
+
+.buttons {
+    max-width: 380px;
+
+    margin: 35px auto 0;
+}
+
+
+.panel {
+    background: white;
+
+    padding: 28px;
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 50px rgba(0, 0, 0, 0.07);
+
+    margin-top: 20px;
+}
+
+
+.panel h2 {
+    font-size: 28px;
+
+    margin-bottom: 8px;
+}
+
+
+.panel p {
+    color: #697386;
+
+    margin-bottom: 15px;
+
+    line-height: 1.5;
+}
+
+
+.hidden {
+    display: none;
+}
+
+
+@media (max-width: 600px) {
+
+    .home {
+        padding-top: 25px;
+    }
+
+
+    .hero {
+        padding-top: 60px;
+    }
+
+
+    h1 {
+        letter-spacing: -2px;
+    }
+
+
+    .panel {
+        padding: 22px;
+    }
+
+}
