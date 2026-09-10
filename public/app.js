@@ -132,19 +132,27 @@ function joinGame() {
 
 socket.on(
     "roomCreated",
-    ({ roomCode, gameType }) => {
+    ({ roomCode, gameType, playerId, isHost }) => {
 
         localStorage.setItem(
             "roomCode",
             roomCode
         );
 
-
         localStorage.setItem(
             "gameType",
             gameType
         );
 
+        localStorage.setItem(
+            "playerId",
+            playerId
+        );
+
+        localStorage.setItem(
+            "isHost",
+            isHost
+        );
 
         window.location.href =
             `/lobby.html?room=${roomCode}`;
@@ -159,19 +167,27 @@ socket.on(
 
 socket.on(
     "joinedRoom",
-    ({ roomCode, gameType }) => {
+    ({ roomCode, gameType, playerId, isHost }) => {
 
         localStorage.setItem(
             "roomCode",
             roomCode
         );
 
-
         localStorage.setItem(
             "gameType",
             gameType
         );
 
+        localStorage.setItem(
+            "playerId",
+            playerId
+        );
+
+        localStorage.setItem(
+            "isHost",
+            isHost
+        );
 
         window.location.href =
             `/lobby.html?room=${roomCode}`;
