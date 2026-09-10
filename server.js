@@ -86,11 +86,15 @@ io.on("connection", (socket) => {
         // Tell the host the room was created
         socket.emit("roomCreated", {
 
-            roomCode: roomCode,
+    roomCode: roomCode,
 
-            gameType: gameType
+    gameType: gameType,
 
-        });
+    playerId: socket.id,
+
+    isHost: true
+
+});
 
 
         // Send updated room information
