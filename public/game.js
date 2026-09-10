@@ -1,23 +1,24 @@
-```javascript
-const socket = io();
+const socket = io({
+    transports: [
+        "websocket",
+        "polling"
+    ]
+});
 
 
-// =========================
-// GET ROOM
-// =========================
+/* =========================
+   ROOM INFORMATION
+========================= */
 
 const params =
     new URLSearchParams(
         window.location.search
     );
 
+
 const roomCode =
     params.get("room");
 
-
-// =========================
-// GET PLAYER
-// =========================
 
 const playerId =
     localStorage.getItem(
@@ -25,28 +26,96 @@ const playerId =
     );
 
 
-// =========================
-// GAME VARIABLES
-// =========================
+/* =========================
+   GAME STATE
+========================= */
 
-let currentQuestion = null;
+let currentQuestion =
+    null;
 
-let timerInterval = null;
+let timerInterval =
+    null;
 
-let hasAnswered = false;
+let hasAnswered =
+    false;
 
-let currentTimeLimit = 15;
+let currentTimeLimit =
+    15;
 
-let currentTimeLeft = 15;
+let currentTimeLeft =
+    15;
 
 
-// =========================
-// GAME PAGE READY
-// =========================
+/* =========================
+   ELEMENTS
+========================= */
+
+const questionElement =
+    document.getElementById(
+        "question"
+    );
+
+
+const questionNumberElement =
+    document.getElementById(
+        "questionNumber"
+    );
+
+
+const timerElement =
+    document.getElementById(
+        "timer"
+    );
+
+
+const timerProgress =
+    document.getElementById(
+        "timerProgress"
+    );
+
+
+const answerMessage =
+    document.getElementById(
+        "answerMessage"
+    );
+
+
+const scoreboard =
+    document.getElementById(
+        "scoreboard"
+    );
+
+
+const answerButtons =
+    document.querySelectorAll(
+        ".answer"
+    );
+
+
+/* =========================
+   CONNECT
+========================= */
 
 socket.on(
     "connect",
     () => {
+
+        console.log(
+            "Connected to Game Space:",
+            socket.id
+        );
+
+
+        /*
+         Tell the server we are here.
+
+         IMPORTANT:
+         This does NOT control when the
+         game starts anymore.
+
+         If the question already exists,
+         the server sends it immediately.
+        */
 
         socket.emit(
             "gameReady",
@@ -63,65 +132,9 @@ socket.on(
 );
 
 
-// =========================
-// GAME READY CONFIRMED
-// =========================
-
-socket.on(
-    "gameReadyConfirmed",
-    () => {
-
-        console.log(
-            "Game page connected and ready."
-        );
-
-    }
-);
-
-
-// =========================
-// DOM ELEMENTS
-// =========================
-
-const questionElement =
-    document.getElementById(
-        "question"
-    );
-
-const questionNumberElement =
-    document.getElementById(
-        "questionNumber"
-    );
-
-const timerElement =
-    document.getElementById(
-        "timer"
-    );
-
-const timerProgress =
-    document.getElementById(
-        "timerProgress"
-    );
-
-const answerMessage =
-    document.getElementById(
-        "answerMessage"
-    );
-
-const scoreboard =
-    document.getElementById(
-        "scoreboard"
-    );
-
-const answerButtons =
-    document.querySelectorAll(
-        ".answer"
-    );
-
-
-// =========================
-// ANSWER BUTTONS
-// =========================
+/* =========================
+   ANSWER BUTTONS
+========================= */
 
 answerButtons.forEach(
     (button) => {
@@ -135,6 +148,7 @@ answerButtons.forEach(
                         button.dataset.index
                     );
 
+
                 submitAnswer(
                     answerIndex,
                     button
@@ -147,9 +161,9 @@ answerButtons.forEach(
 );
 
 
-// =========================
-// SUBMIT ANSWER
-// =========================
+/* =========================
+   SUBMIT ANSWER
+========================= */
 
 function submitAnswer(
     answerIndex,
@@ -160,16 +174,14 @@ function submitAnswer(
         hasAnswered ||
         !currentQuestion
     ) {
-
         return;
-
     }
+
 
     hasAnswered =
         true;
 
 
-    // Highlight selected answer
     answerButtons.forEach(
         (button) => {
 
@@ -188,7 +200,6 @@ function submitAnswer(
     socket.emit(
         "submitAnswer",
         {
-
             roomCode:
                 roomCode,
 
@@ -197,112 +208,148 @@ function submitAnswer(
 
             answerIndex:
                 answerIndex
-
         }
     );
 
 }
 
 
-// =========================
-// NEW QUESTION
-// =========================
+/* =========================
+   NEW QUESTION
+========================= */
 
 socket.on(
     "newQuestion",
     (question) => {
 
+        console.log(
+            "New question received:",
+            question
+        );
+
+
         currentQuestion =
             question;
+
 
         hasAnswered =
             false;
 
+
         currentTimeLimit =
             question.timeLimit;
+
 
         currentTimeLeft =
             question.timeLimit;
 
 
-        // Reset answer buttons
+        /*
+         Reset answer buttons.
+        */
+
         answerButtons.forEach(
             (button) => {
 
                 button.disabled =
                     false;
 
+
                 button.classList.remove(
                     "selected-answer"
                 );
+
 
                 button.classList.remove(
                     "correct-answer"
                 );
 
+
                 button.classList.remove(
                     "wrong-answer"
                 );
 
+
                 button.style.display =
                     "flex";
+
+
+                button.style.animationDelay =
+                    "0s";
 
             }
         );
 
 
-        // Hide previous message
         answerMessage.classList.add(
             "hidden"
         );
 
 
-        // Question number
+        /*
+         Question number.
+        */
+
         questionNumberElement.textContent =
             `Question ${question.number} of ${question.total}`;
 
 
-        // Question text
+        /*
+         Animate question.
+        */
+
         questionElement.classList.remove(
             "question-changing"
         );
 
-        // Force browser to restart animation
+
         void questionElement.offsetWidth;
+
 
         questionElement.classList.add(
             "question-changing"
         );
 
+
         questionElement.textContent =
             question.question;
 
 
-        // Answers
+        /*
+         Populate answers.
+        */
+
         answerButtons.forEach(
             (button, index) => {
 
                 button.textContent =
                     question.answers[index];
 
+
                 button.classList.remove(
                     "answer-changing"
                 );
 
+
                 void button.offsetWidth;
+
+
+                button.style.animationDelay =
+                    `${index * 0.06}s`;
+
 
                 button.classList.add(
                     "answer-changing"
                 );
 
-                button.style.animationDelay =
-                    `${index * 0.06}s`;
-
             }
         );
 
 
-        // Start timer
+        /*
+         Start local countdown.
+        */
+
         startTimer(
             question.timeLimit
         );
@@ -311,9 +358,9 @@ socket.on(
 );
 
 
-// =========================
-// TIMER
-// =========================
+/* =========================
+   TIMER
+========================= */
 
 function startTimer(
     seconds
@@ -331,6 +378,7 @@ function startTimer(
     currentTimeLimit =
         seconds;
 
+
     currentTimeLeft =
         seconds;
 
@@ -339,7 +387,15 @@ function startTimer(
         timeLeft;
 
 
-    // Reset progress bar
+    timerElement.classList.remove(
+        "timer-warning"
+    );
+
+
+    /*
+     Reset progress bar.
+    */
+
     if (timerProgress) {
 
         timerProgress.style.transition =
@@ -348,14 +404,17 @@ function startTimer(
         timerProgress.style.width =
             "100%";
 
-        // Force browser repaint
+
         void timerProgress.offsetWidth;
+
 
         timerProgress.style.transition =
             `width ${seconds}s linear`;
 
+
         timerProgress.style.width =
             "0%";
+
     }
 
 
@@ -364,6 +423,7 @@ function startTimer(
             () => {
 
                 timeLeft--;
+
 
                 currentTimeLeft =
                     timeLeft;
@@ -376,7 +436,6 @@ function startTimer(
                     );
 
 
-                // Add urgency near the end
                 if (
                     timeLeft <= 5
                 ) {
@@ -385,9 +444,7 @@ function startTimer(
                         "timer-warning"
                     );
 
-                }
-
-                else {
+                } else {
 
                     timerElement.classList.remove(
                         "timer-warning"
@@ -403,6 +460,7 @@ function startTimer(
                     clearInterval(
                         timerInterval
                     );
+
 
                     timerElement.classList.remove(
                         "timer-warning"
@@ -443,9 +501,9 @@ function startTimer(
 }
 
 
-// =========================
-// ANSWER RESULT
-// =========================
+/* =========================
+   ANSWER RESULT
+========================= */
 
 socket.on(
     "answerResult",
@@ -454,9 +512,7 @@ socket.on(
         points
     }) => {
 
-        if (
-            correct
-        ) {
+        if (correct) {
 
             showAnswerMessage(
                 `Correct! +${points} points 🎉`,
@@ -464,7 +520,6 @@ socket.on(
             );
 
 
-            // Find the selected answer
             answerButtons.forEach(
                 (button) => {
 
@@ -478,6 +533,7 @@ socket.on(
                             "selected-answer"
                         );
 
+
                         button.classList.add(
                             "correct-answer"
                         );
@@ -487,9 +543,7 @@ socket.on(
                 }
             );
 
-        }
-
-        else {
+        } else {
 
             showAnswerMessage(
                 "Not quite!",
@@ -510,6 +564,7 @@ socket.on(
                             "selected-answer"
                         );
 
+
                         button.classList.add(
                             "wrong-answer"
                         );
@@ -525,9 +580,9 @@ socket.on(
 );
 
 
-// =========================
-// ANSWER MESSAGE
-// =========================
+/* =========================
+   ANSWER MESSAGE
+========================= */
 
 function showAnswerMessage(
     text,
@@ -537,17 +592,21 @@ function showAnswerMessage(
     answerMessage.textContent =
         text;
 
+
     answerMessage.classList.remove(
         "hidden"
     );
+
 
     answerMessage.classList.remove(
         "message-correct"
     );
 
+
     answerMessage.classList.remove(
         "message-wrong"
     );
+
 
     answerMessage.classList.remove(
         "message-timeout"
@@ -563,9 +622,7 @@ function showAnswerMessage(
             "message-correct"
         );
 
-    }
-
-    else if (
+    } else if (
         type ===
         "wrong"
     ) {
@@ -574,9 +631,7 @@ function showAnswerMessage(
             "message-wrong"
         );
 
-    }
-
-    else {
+    } else {
 
         answerMessage.classList.add(
             "message-timeout"
@@ -585,12 +640,13 @@ function showAnswerMessage(
     }
 
 
-    // Restart animation
     answerMessage.classList.remove(
         "message-pop"
     );
 
+
     void answerMessage.offsetWidth;
+
 
     answerMessage.classList.add(
         "message-pop"
@@ -599,9 +655,9 @@ function showAnswerMessage(
 }
 
 
-// =========================
-// SCOREBOARD
-// =========================
+/* =========================
+   LIVE SCORES
+========================= */
 
 socket.on(
     "scoreUpdate",
@@ -615,20 +671,12 @@ socket.on(
 );
 
 
-// =========================
-// RENDER SCOREBOARD
-// =========================
-
 function renderScoreboard(
     players
 ) {
 
-    if (
-        !scoreboard
-    ) {
-
+    if (!scoreboard) {
         return;
-
     }
 
 
@@ -644,6 +692,22 @@ function renderScoreboard(
         );
 
 
+    if (
+        sortedPlayers.length === 0
+    ) {
+
+        scoreboard.innerHTML =
+            `
+            <div class="player">
+                Waiting for players...
+            </div>
+            `;
+
+        return;
+
+    }
+
+
     sortedPlayers.forEach(
         (player, index) => {
 
@@ -657,44 +721,32 @@ function renderScoreboard(
                 "player score-row";
 
 
-            // Position
             const position =
                 document.createElement(
                     "span"
                 );
 
+
             position.className =
                 "score-position";
 
 
-            if (
-                index === 0
-            ) {
+            if (index === 0) {
 
                 position.textContent =
                     "🥇";
 
-            }
-
-            else if (
-                index === 1
-            ) {
+            } else if (index === 1) {
 
                 position.textContent =
                     "🥈";
 
-            }
-
-            else if (
-                index === 2
-            ) {
+            } else if (index === 2) {
 
                 position.textContent =
                     "🥉";
 
-            }
-
-            else {
+            } else {
 
                 position.textContent =
                     `${index + 1}`;
@@ -702,27 +754,29 @@ function renderScoreboard(
             }
 
 
-            // Name
             const name =
                 document.createElement(
                     "span"
                 );
 
+
             name.className =
                 "score-name";
+
 
             name.textContent =
                 player.name;
 
 
-            // Score
             const score =
                 document.createElement(
                     "span"
                 );
 
+
             score.className =
                 "score-value";
+
 
             score.textContent =
                 player.score;
@@ -732,9 +786,11 @@ function renderScoreboard(
                 position
             );
 
+
             row.appendChild(
                 name
             );
+
 
             row.appendChild(
                 score
@@ -751,9 +807,9 @@ function renderScoreboard(
 }
 
 
-// =========================
-// GAME FINISHED
-// =========================
+/* =========================
+   GAME FINISHED
+========================= */
 
 socket.on(
     "gameFinished",
@@ -773,9 +829,7 @@ socket.on(
         );
 
 
-        if (
-            timerProgress
-        ) {
+        if (timerProgress) {
 
             timerProgress.style.transition =
                 "none";
@@ -794,11 +848,14 @@ socket.on(
             "question-changing"
         );
 
+
         void questionElement.offsetWidth;
+
 
         questionElement.classList.add(
             "game-over-animation"
         );
+
 
         questionElement.textContent =
             "🏆 Game Over!";
@@ -827,9 +884,9 @@ socket.on(
 );
 
 
-// =========================
-// FINAL SCOREBOARD
-// =========================
+/* =========================
+   FINAL SCORES
+========================= */
 
 function renderFinalScores(
     players
@@ -860,9 +917,7 @@ function renderFinalScores(
                 "player score-row final-score-row";
 
 
-            if (
-                index === 0
-            ) {
+            if (index === 0) {
 
                 row.classList.add(
                     "winner"
@@ -876,38 +931,27 @@ function renderFinalScores(
                     "span"
                 );
 
+
             position.className =
                 "score-position";
 
 
-            if (
-                index === 0
-            ) {
+            if (index === 0) {
 
                 position.textContent =
                     "🏆";
 
-            }
-
-            else if (
-                index === 1
-            ) {
+            } else if (index === 1) {
 
                 position.textContent =
                     "🥈";
 
-            }
-
-            else if (
-                index === 2
-            ) {
+            } else if (index === 2) {
 
                 position.textContent =
                     "🥉";
 
-            }
-
-            else {
+            } else {
 
                 position.textContent =
                     `${index + 1}`;
@@ -920,8 +964,10 @@ function renderFinalScores(
                     "span"
                 );
 
+
             name.className =
                 "score-name";
+
 
             name.textContent =
                 player.name;
@@ -932,8 +978,10 @@ function renderFinalScores(
                     "span"
                 );
 
+
             score.className =
                 "score-value";
+
 
             score.textContent =
                 `${player.score} pts`;
@@ -943,9 +991,11 @@ function renderFinalScores(
                 position
             );
 
+
             row.appendChild(
                 name
             );
+
 
             row.appendChild(
                 score
@@ -962,9 +1012,9 @@ function renderFinalScores(
 }
 
 
-// =========================
-// SOCKET ERROR
-// =========================
+/* =========================
+   ERROR HANDLING
+========================= */
 
 socket.on(
     "errorMessage",
@@ -978,40 +1028,18 @@ socket.on(
 );
 
 
-// =========================
-// CONNECTION ERROR
-// =========================
-
 socket.on(
     "connect_error",
-    () => {
+    (error) => {
 
-        if (
-            questionElement
-        ) {
-
-            questionElement.textContent =
-                "Reconnecting to game...";
-
-        }
-
-    }
-);
-
-
-// =========================
-// RECONNECTED
-// =========================
-
-socket.on(
-    "connect",
-    () => {
-
-        console.log(
-            "Connected to Game Space:",
-            socket.id
+        console.error(
+            "Socket connection error:",
+            error
         );
 
+
+        questionElement.textContent =
+            "Reconnecting to game...";
+
     }
 );
-```
