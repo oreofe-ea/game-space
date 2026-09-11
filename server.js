@@ -2,28 +2,15 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const fs = require("fs");
 
-
-const app =
-    express();
-
+const app = express();
 
 const server =
-    http.createServer(
-        app
-    );
-
+    http.createServer(app);
 
 const io =
-    new Server(
-        server,
-        {
-            cors: {
-                origin: "*"
-            }
-        }
-    );
-
+    new Server(server);
 
 const PORT =
     process.env.PORT || 3000;
@@ -39,415 +26,70 @@ app.use(
 );
 
 
-/* =========================
-   GAME SETTINGS
-========================= */
+// =========================
+// LOAD QUIZ BANK
+// =========================
+
+const quizFile =
+    path.join(
+        __dirname,
+        "data",
+        "quiz.json"
+    );
+
+let questionBank = [];
+
+try {
+
+    questionBank =
+        JSON.parse(
+            fs.readFileSync(
+                quizFile,
+                "utf8"
+            )
+        );
+
+    console.log(
+        `Loaded ${questionBank.length} quiz questions.`
+    );
+
+} catch (error) {
+
+    console.error(
+        "Could not load quiz.json:",
+        error
+    );
+
+}
+
+
+// =========================
+// SETTINGS
+// =========================
 
 const rooms = {};
 
 const DISCONNECT_GRACE_PERIOD =
     30000;
 
-const QUESTIONS_PER_GAME =
+const DEFAULT_QUESTIONS_PER_GAME =
     10;
 
 const QUESTION_TIME =
     15;
 
+const GAME_READY_TIMEOUT =
+    10000;
 
-/*
- How long after the host presses
- Start before Question 1 appears.
 
- This is NOT waiting for players.
+// =========================
+// HELPERS
+// =========================
 
- It simply gives browsers enough
- time to navigate to game.html.
-*/
-
-const FIRST_QUESTION_DELAY =
-    1500;
-
-
-/* =========================
-   QUESTION BANK
-========================= */
-
-const questionBank = [
-
-    {
-        question:
-            "Which country is the most populous in Africa?",
-
-        answers: [
-            "Nigeria",
-            "Egypt",
-            "South Africa",
-            "Ethiopia"
-        ],
-
-        correct: 0
-    },
-
-
-    {
-        question:
-            "What is the capital city of Ghana?",
-
-        answers: [
-            "Kumasi",
-            "Accra",
-            "Lagos",
-            "Tamale"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "Which planet is known as the Red Planet?",
-
-        answers: [
-            "Venus",
-            "Jupiter",
-            "Mars",
-            "Saturn"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "How many continents are there?",
-
-        answers: [
-            "5",
-            "6",
-            "7",
-            "8"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which ocean is the largest?",
-
-        answers: [
-            "Atlantic Ocean",
-            "Indian Ocean",
-            "Pacific Ocean",
-            "Arctic Ocean"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "What is the currency of Kenya?",
-
-        answers: [
-            "Naira",
-            "Cedi",
-            "Kenyan Shilling",
-            "Rand"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which African country is famous for the ancient pyramids of Giza?",
-
-        answers: [
-            "Egypt",
-            "Morocco",
-            "Sudan",
-            "Tunisia"
-        ],
-
-        correct: 0
-    },
-
-
-    {
-        question:
-            "What gas do humans need to breathe?",
-
-        answers: [
-            "Carbon dioxide",
-            "Oxygen",
-            "Hydrogen",
-            "Nitrogen"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "Which animal is known as the king of the jungle?",
-
-        answers: [
-            "Tiger",
-            "Elephant",
-            "Lion",
-            "Leopard"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which Nigerian city is known as the country's largest commercial city?",
-
-        answers: [
-            "Ibadan",
-            "Abuja",
-            "Lagos",
-            "Enugu"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which instrument has black and white keys?",
-
-        answers: [
-            "Guitar",
-            "Piano",
-            "Drum",
-            "Trumpet"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "What is 12 × 5?",
-
-        answers: [
-            "50",
-            "55",
-            "60",
-            "65"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which country is famous for the Maasai people?",
-
-        answers: [
-            "Kenya",
-            "Nigeria",
-            "Ghana",
-            "Senegal"
-        ],
-
-        correct: 0
-    },
-
-
-    {
-        question:
-            "Which is the largest land animal?",
-
-        answers: [
-            "Giraffe",
-            "Elephant",
-            "Rhinoceros",
-            "Hippopotamus"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "What is the capital of Nigeria?",
-
-        answers: [
-            "Lagos",
-            "Kano",
-            "Abuja",
-            "Ibadan"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which language is primarily spoken in Brazil?",
-
-        answers: [
-            "Spanish",
-            "Portuguese",
-            "French",
-            "English"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "How many sides does a triangle have?",
-
-        answers: [
-            "2",
-            "3",
-            "4",
-            "5"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "Which Nigerian food is traditionally made from cassava?",
-
-        answers: [
-            "Jollof rice",
-            "Garri",
-            "Moi moi",
-            "Suya"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "Which organ pumps blood around the human body?",
-
-        answers: [
-            "Lungs",
-            "Brain",
-            "Heart",
-            "Kidney"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which desert is the largest hot desert in the world?",
-
-        answers: [
-            "Kalahari",
-            "Sahara",
-            "Namib",
-            "Gobi"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "Which Nigerian musician is known for the song 'Ye'?",
-
-        answers: [
-            "Wizkid",
-            "Burna Boy",
-            "Davido",
-            "Olamide"
-        ],
-
-        correct: 1
-    },
-
-
-    {
-        question:
-            "What is the boiling point of water at sea level?",
-
-        answers: [
-            "50°C",
-            "75°C",
-            "100°C",
-            "150°C"
-        ],
-
-        correct: 2
-    },
-
-
-    {
-        question:
-            "Which country gifted the Statue of Liberty to the United States?",
-
-        answers: [
-            "France",
-            "Spain",
-            "Italy",
-            "Germany"
-        ],
-
-        correct: 0
-    },
-
-
-    {
-        question:
-            "Which sport uses a racket and a shuttlecock?",
-
-        answers: [
-            "Tennis",
-            "Badminton",
-            "Squash",
-            "Cricket"
-        ],
-
-        correct: 1
-    }
-
-];
-
-
-/* =========================
-   HELPERS
-========================= */
-
-function shuffle(
-    array
-) {
+function shuffle(array) {
 
     const copy =
         [...array];
-
 
     for (
         let i =
@@ -460,10 +102,9 @@ function shuffle(
 
         const j =
             Math.floor(
-                Math.random()
-                * (i + 1)
+                Math.random() *
+                (i + 1)
             );
-
 
         [
             copy[i],
@@ -472,33 +113,15 @@ function shuffle(
             copy[j],
             copy[i]
         ];
-
     }
 
-
     return copy;
-}
-
-
-function createQuestionSet() {
-
-    return shuffle(
-        questionBank
-    ).slice(
-        0,
-        Math.min(
-            QUESTIONS_PER_GAME,
-            questionBank.length
-        )
-    );
-
 }
 
 
 function generateRoomCode() {
 
     let roomCode;
-
 
     do {
 
@@ -515,9 +138,7 @@ function generateRoomCode() {
         rooms[roomCode]
     );
 
-
     return roomCode;
-
 }
 
 
@@ -530,19 +151,153 @@ function findPlayer(
         return null;
     }
 
-
     return room.players.find(
-        (player) =>
+        player =>
             player.playerId ===
             playerId
     );
-
 }
 
 
-/* =========================
-   ROOM UPDATE
-========================= */
+// =========================
+// QUESTION ENGINE
+// =========================
+
+function createQuestionSet(
+    settings
+) {
+
+    const category =
+        settings?.category ||
+        "random";
+
+    const difficulty =
+        settings?.difficulty ||
+        "mixed";
+
+    let count =
+        Number(
+            settings?.questionCount
+        ) ||
+        DEFAULT_QUESTIONS_PER_GAME;
+
+
+    count =
+        Math.max(
+            5,
+            Math.min(
+                count,
+                20
+            )
+        );
+
+
+    let available =
+        [...questionBank];
+
+
+    // CATEGORY
+
+    if (
+        category !==
+        "random"
+    ) {
+
+        const categoryQuestions =
+            available.filter(
+                question =>
+                    question.category ===
+                    category
+            );
+
+        if (
+            categoryQuestions.length >
+            0
+        ) {
+
+            available =
+                categoryQuestions;
+
+        }
+
+    }
+
+
+    // DIFFICULTY
+
+    if (
+        difficulty !==
+        "mixed"
+    ) {
+
+        const difficultyQuestions =
+            available.filter(
+                question =>
+                    question.difficulty ===
+                    difficulty
+            );
+
+        if (
+            difficultyQuestions.length >
+            0
+        ) {
+
+            available =
+                difficultyQuestions;
+
+        }
+
+    }
+
+
+    /*
+        If the selected category/
+        difficulty doesn't have enough
+        questions, use the available
+        questions from the selected
+        category rather than crashing.
+    */
+
+    if (
+        available.length <
+        count
+    ) {
+
+        console.log(
+            `Only ${available.length} questions available for selected settings.`
+        );
+
+    }
+
+
+    return shuffle(
+        available
+    )
+        .slice(
+            0,
+            Math.min(
+                count,
+                available.length
+            )
+        )
+        .map(
+            question => ({
+                question:
+                    question.question,
+
+                answers:
+                    question.answers,
+
+                correct:
+                    question.correct
+            })
+        );
+}
+
+
+// =========================
+// ROOM UPDATE
+// =========================
 
 function sendRoomUpdate(
     roomCode
@@ -550,7 +305,6 @@ function sendRoomUpdate(
 
     const room =
         rooms[roomCode];
-
 
     if (!room) {
         return;
@@ -560,6 +314,7 @@ function sendRoomUpdate(
     io.to(roomCode).emit(
         "roomUpdate",
         {
+
             hostPlayerId:
                 room.hostPlayerId,
 
@@ -569,20 +324,23 @@ function sendRoomUpdate(
             status:
                 room.status,
 
+            settings:
+                room.settings,
+
             players:
                 room.players.filter(
-                    (player) =>
+                    player =>
                         player.connected
                 )
+
         }
     );
-
 }
 
 
-/* =========================
-   SCORES
-========================= */
+// =========================
+// SCORES
+// =========================
 
 function sendScores(
     roomCode
@@ -590,7 +348,6 @@ function sendScores(
 
     const room =
         rooms[roomCode];
-
 
     if (!room) {
         return;
@@ -600,11 +357,12 @@ function sendScores(
     const players =
         room.players
             .filter(
-                (player) =>
+                player =>
                     player.connected
             )
             .map(
-                (player) => ({
+                player => ({
+
                     name:
                         player.name,
 
@@ -613,12 +371,8 @@ function sendScores(
 
                     playerId:
                         player.playerId
+
                 })
-            )
-            .sort(
-                (a, b) =>
-                    b.score -
-                    a.score
             );
 
 
@@ -626,13 +380,12 @@ function sendScores(
         "scoreUpdate",
         players
     );
-
 }
 
 
-/* =========================
-   SEND CURRENT QUESTION
-========================= */
+// =========================
+// SEND QUESTION
+// =========================
 
 function sendQuestion(
     roomCode
@@ -640,7 +393,6 @@ function sendQuestion(
 
     const room =
         rooms[roomCode];
-
 
     if (!room) {
         return;
@@ -657,7 +409,6 @@ function sendQuestion(
         );
 
         return;
-
     }
 
 
@@ -695,15 +446,19 @@ function sendQuestion(
                 );
 
             },
-            QUESTION_TIME * 1000
+
+            QUESTION_TIME *
+            1000
         );
 
 
     io.to(roomCode).emit(
         "newQuestion",
         {
+
             number:
-                room.currentQuestionIndex + 1,
+                room.currentQuestionIndex +
+                1,
 
             total:
                 room.questions.length,
@@ -716,105 +471,15 @@ function sendQuestion(
 
             timeLimit:
                 QUESTION_TIME
+
         }
     );
-
-
-    console.log(
-        `Question ${room.currentQuestionIndex + 1} sent to ${roomCode}`
-    );
-
 }
 
 
-/* =========================
-   SEND CURRENT QUESTION
-   TO A SINGLE PLAYER
-========================= */
-
-function sendCurrentQuestionToSocket(
-    socket,
-    room
-) {
-
-    if (
-        room.status !==
-        "playing"
-    ) {
-        return;
-    }
-
-
-    if (
-        room.questionStartedAt ===
-        null
-    ) {
-        return;
-    }
-
-
-    const question =
-        room.questions[
-            room.currentQuestionIndex
-        ];
-
-
-    if (!question) {
-        return;
-    }
-
-
-    const elapsed =
-        Date.now() -
-        room.questionStartedAt;
-
-
-    const remaining =
-        Math.max(
-            0,
-            Math.ceil(
-                (
-                    QUESTION_TIME *
-                    1000 -
-                    elapsed
-                ) / 1000
-            )
-        );
-
-
-    if (
-        remaining <= 0
-    ) {
-        return;
-    }
-
-
-    socket.emit(
-        "newQuestion",
-        {
-            number:
-                room.currentQuestionIndex + 1,
-
-            total:
-                room.questions.length,
-
-            question:
-                question.question,
-
-            answers:
-                question.answers,
-
-            timeLimit:
-                remaining
-        }
-    );
-
-}
-
-
-/* =========================
-   NEXT QUESTION
-========================= */
+// =========================
+// NEXT QUESTION
+// =========================
 
 function nextQuestion(
     roomCode
@@ -822,7 +487,6 @@ function nextQuestion(
 
     const room =
         rooms[roomCode];
-
 
     if (!room) {
         return;
@@ -855,20 +519,6 @@ function nextQuestion(
     );
 
 
-    if (
-        room.currentQuestionIndex >=
-        room.questions.length
-    ) {
-
-        finishGame(
-            roomCode
-        );
-
-        return;
-
-    }
-
-
     setTimeout(
         () => {
 
@@ -881,6 +531,7 @@ function nextQuestion(
                 currentRoom.status !==
                     "playing"
             ) {
+
                 return;
             }
 
@@ -890,15 +541,15 @@ function nextQuestion(
             );
 
         },
-        1200
-    );
 
+        1500
+    );
 }
 
 
-/* =========================
-   FINISH GAME
-========================= */
+// =========================
+// FINISH GAME
+// =========================
 
 function finishGame(
     roomCode
@@ -906,7 +557,6 @@ function finishGame(
 
     const room =
         rooms[roomCode];
-
 
     if (!room) {
         return;
@@ -952,7 +602,8 @@ function finishGame(
     const finalPlayers =
         room.players
             .map(
-                (player) => ({
+                player => ({
+
                     name:
                         player.name,
 
@@ -961,6 +612,7 @@ function finishGame(
 
                     playerId:
                         player.playerId
+
                 })
             )
             .sort(
@@ -974,22 +626,16 @@ function finishGame(
         "gameFinished",
         finalPlayers
     );
-
-
-    console.log(
-        `Game finished: ${roomCode}`
-    );
-
 }
 
 
-/* =========================
-   SOCKET CONNECTION
-========================= */
+// =========================
+// SOCKET.IO
+// =========================
 
 io.on(
     "connection",
-    (socket) => {
+    socket => {
 
         console.log(
             "Player connected:",
@@ -997,16 +643,17 @@ io.on(
         );
 
 
-        /* =====================
-           CREATE ROOM
-        ===================== */
+        // =========================
+        // CREATE ROOM
+        // =========================
 
         socket.on(
             "createRoom",
             ({
                 playerId,
                 playerName,
-                gameType
+                gameType,
+                settings
             }) => {
 
                 const roomCode =
@@ -1021,11 +668,16 @@ io.on(
                     gameType:
                         gameType,
 
+                    settings:
+                        settings || {},
+
                     status:
                         "lobby",
 
                     players: [
+
                         {
+
                             playerId:
                                 playerId,
 
@@ -1040,7 +692,9 @@ io.on(
 
                             connected:
                                 true
+
                         }
+
                     ],
 
                     questions:
@@ -1058,8 +712,12 @@ io.on(
                     answersThisRound:
                         {},
 
+                    readyPlayers:
+                        new Set(),
+
                     startTimer:
                         null
+
                 };
 
 
@@ -1079,6 +737,7 @@ io.on(
                 socket.emit(
                     "roomCreated",
                     {
+
                         roomCode:
                             roomCode,
 
@@ -1087,6 +746,7 @@ io.on(
 
                         playerId:
                             playerId
+
                     }
                 );
 
@@ -1104,9 +764,9 @@ io.on(
         );
 
 
-        /* =====================
-           JOIN ROOM
-        ===================== */
+        // =========================
+        // JOIN ROOM
+        // =========================
 
         socket.on(
             "joinRoom",
@@ -1128,7 +788,6 @@ io.on(
                     );
 
                     return;
-
                 }
 
 
@@ -1143,7 +802,6 @@ io.on(
                     );
 
                     return;
-
                 }
 
 
@@ -1210,6 +868,7 @@ io.on(
                 socket.emit(
                     "joinedRoom",
                     {
+
                         roomCode:
                             roomCode,
 
@@ -1218,6 +877,7 @@ io.on(
 
                         playerId:
                             playerId
+
                     }
                 );
 
@@ -1235,9 +895,9 @@ io.on(
         );
 
 
-        /* =====================
-           RECONNECT
-        ===================== */
+        // =========================
+        // RECONNECT
+        // =========================
 
         socket.on(
             "reconnectToRoom",
@@ -1303,10 +963,70 @@ io.on(
                     );
 
 
-                    sendCurrentQuestionToSocket(
-                        socket,
-                        room
-                    );
+                    if (
+                        room.questionStartedAt
+                    ) {
+
+                        const question =
+                            room.questions[
+                                room.currentQuestionIndex
+                            ];
+
+
+                        if (question) {
+
+                            const elapsed =
+                                Date.now() -
+                                room.questionStartedAt;
+
+
+                            const remaining =
+                                Math.max(
+                                    0,
+                                    Math.ceil(
+                                        (
+                                            QUESTION_TIME *
+                                            1000 -
+                                            elapsed
+                                        ) /
+                                        1000
+                                    )
+                                );
+
+
+                            if (
+                                remaining >
+                                0
+                            ) {
+
+                                socket.emit(
+                                    "newQuestion",
+                                    {
+
+                                        number:
+                                            room.currentQuestionIndex +
+                                            1,
+
+                                        total:
+                                            room.questions.length,
+
+                                        question:
+                                            question.question,
+
+                                        answers:
+                                            question.answers,
+
+                                        timeLimit:
+                                            remaining
+
+                                    }
+                                );
+
+                            }
+
+                        }
+
+                    }
 
                 }
 
@@ -1314,9 +1034,9 @@ io.on(
         );
 
 
-        /* =====================
-           START GAME
-        ===================== */
+        // =========================
+        // START GAME
+        // =========================
 
         socket.on(
             "startGame",
@@ -1345,7 +1065,6 @@ io.on(
                     );
 
                     return;
-
                 }
 
 
@@ -1353,6 +1072,7 @@ io.on(
                     room.status !==
                     "lobby"
                 ) {
+
                     return;
                 }
 
@@ -1362,7 +1082,28 @@ io.on(
 
 
                 room.questions =
-                    createQuestionSet();
+                    createQuestionSet(
+                        room.settings
+                    );
+
+
+                if (
+                    room.questions.length ===
+                    0
+                ) {
+
+                    room.status =
+                        "lobby";
+
+
+                    socket.emit(
+                        "errorMessage",
+                        "There are no questions available for this game."
+                    );
+
+
+                    return;
+                }
 
 
                 room.currentQuestionIndex =
@@ -1377,8 +1118,12 @@ io.on(
                     null;
 
 
+                room.readyPlayers =
+                    new Set();
+
+
                 room.players.forEach(
-                    (player) => {
+                    player => {
 
                         player.score =
                             0;
@@ -1387,32 +1132,16 @@ io.on(
                 );
 
 
-                /*
-                 Everyone is sent to game.html.
-                */
-
                 io.to(roomCode).emit(
                     "gameStarted",
                     {
+
                         gameType:
                             room.gameType
+
                     }
                 );
 
-
-                /*
-                 IMPORTANT:
-
-                 We no longer wait for every
-                 player to send "gameReady".
-
-                 The server simply starts the
-                 first question shortly after.
-
-                 Players who load in later receive
-                 the current question through
-                 gameReady/reconnect.
-                */
 
                 room.startTimer =
                     setTimeout(
@@ -1423,13 +1152,25 @@ io.on(
 
 
                             if (
-                                !currentRoom ||
+                                !currentRoom
+                            ) {
+                                return;
+                            }
+
+
+                            if (
                                 currentRoom.status !==
                                     "playing" ||
                                 currentRoom.questionStartedAt
                             ) {
+
                                 return;
                             }
+
+
+                            console.log(
+                                `Starting ${roomCode} after ready timeout`
+                            );
 
 
                             sendQuestion(
@@ -1442,21 +1183,17 @@ io.on(
                             );
 
                         },
-                        FIRST_QUESTION_DELAY
+
+                        GAME_READY_TIMEOUT
                     );
-
-
-                console.log(
-                    `Game started: ${roomCode}`
-                );
 
             }
         );
 
 
-        /* =====================
-           GAME READY
-        ===================== */
+        // =========================
+        // GAME READY
+        // =========================
 
         socket.on(
             "gameReady",
@@ -1469,7 +1206,12 @@ io.on(
                     rooms[roomCode];
 
 
-                if (!room) {
+                if (
+                    !room ||
+                    room.status !==
+                        "playing"
+                ) {
+
                     return;
                 }
 
@@ -1507,6 +1249,11 @@ io.on(
                     playerId;
 
 
+                room.readyPlayers.add(
+                    playerId
+                );
+
+
                 socket.emit(
                     "gameReadyConfirmed"
                 );
@@ -1517,24 +1264,135 @@ io.on(
                 );
 
 
-                /*
-                 If Question 1 has already
-                 started, immediately give
-                 this player the current question.
-                */
+                if (
+                    room.questionStartedAt
+                ) {
 
-                sendCurrentQuestionToSocket(
-                    socket,
-                    room
-                );
+                    const question =
+                        room.questions[
+                            room.currentQuestionIndex
+                        ];
+
+
+                    if (question) {
+
+                        const elapsed =
+                            Date.now() -
+                            room.questionStartedAt;
+
+
+                        const remaining =
+                            Math.max(
+                                0,
+                                Math.ceil(
+                                    (
+                                        QUESTION_TIME *
+                                        1000 -
+                                        elapsed
+                                    ) /
+                                    1000
+                                )
+                            );
+
+
+                        if (
+                            remaining >
+                            0
+                        ) {
+
+                            socket.emit(
+                                "newQuestion",
+                                {
+
+                                    number:
+                                        room.currentQuestionIndex +
+                                        1,
+
+                                    total:
+                                        room.questions.length,
+
+                                    question:
+                                        question.question,
+
+                                    answers:
+                                        question.answers,
+
+                                    timeLimit:
+                                        remaining
+
+                                }
+                            );
+
+                        }
+
+                    }
+
+
+                    return;
+                }
+
+
+                const connectedPlayers =
+                    room.players.filter(
+                        player =>
+                            player.connected
+                    );
+
+
+                const allReady =
+                    connectedPlayers.length >
+                        0 &&
+                    connectedPlayers.every(
+                        player =>
+                            room.readyPlayers.has(
+                                player.playerId
+                            )
+                    );
+
+
+                if (
+                    allReady &&
+                    !room.questionStartedAt
+                ) {
+
+                    if (
+                        room.startTimer
+                    ) {
+
+                        clearTimeout(
+                            room.startTimer
+                        );
+
+
+                        room.startTimer =
+                            null;
+
+                    }
+
+
+                    console.log(
+                        `All players ready in ${roomCode}`
+                    );
+
+
+                    sendQuestion(
+                        roomCode
+                    );
+
+
+                    sendScores(
+                        roomCode
+                    );
+
+                }
 
             }
         );
 
 
-        /* =====================
-           SUBMIT ANSWER
-        ===================== */
+        // =========================
+        // SUBMIT ANSWER
+        // =========================
 
         socket.on(
             "submitAnswer",
@@ -1553,6 +1411,7 @@ io.on(
                     room.status !==
                         "playing"
                 ) {
+
                     return;
                 }
 
@@ -1580,40 +1439,12 @@ io.on(
                 }
 
 
-                /*
-                 Prevent duplicate answers.
-                */
-
                 if (
                     room.answersThisRound[
                         playerId
                     ]
                 ) {
-                    return;
-                }
 
-
-                /*
-                 Prevent answers after
-                 the question timer has ended.
-                */
-
-                if (
-                    !room.questionStartedAt
-                ) {
-                    return;
-                }
-
-
-                const elapsed =
-                    Date.now() -
-                    room.questionStartedAt;
-
-
-                if (
-                    elapsed >=
-                    QUESTION_TIME * 1000
-                ) {
                     return;
                 }
 
@@ -1621,6 +1452,11 @@ io.on(
                 room.answersThisRound[
                     playerId
                 ] = true;
+
+
+                const elapsed =
+                    Date.now() -
+                    room.questionStartedAt;
 
 
                 const timeRemaining =
@@ -1639,8 +1475,7 @@ io.on(
                     question.correct;
 
 
-                let points =
-                    0;
+                let points = 0;
 
 
                 if (correct) {
@@ -1668,11 +1503,13 @@ io.on(
                 socket.emit(
                     "answerResult",
                     {
+
                         correct:
                             correct,
 
                         points:
                             points
+
                     }
                 );
 
@@ -1682,15 +1519,9 @@ io.on(
                 );
 
 
-                /*
-                 If every currently connected
-                 player has answered, move on
-                 immediately.
-                */
-
                 const connectedPlayers =
                     room.players.filter(
-                        (player) =>
+                        player =>
                             player.connected
                     );
 
@@ -1699,7 +1530,7 @@ io.on(
                     connectedPlayers.length >
                         0 &&
                     connectedPlayers.every(
-                        (player) =>
+                        player =>
                             room.answersThisRound[
                                 player.playerId
                             ]
@@ -1720,9 +1551,9 @@ io.on(
         );
 
 
-        /* =====================
-           DISCONNECT
-        ===================== */
+        // =========================
+        // DISCONNECT
+        // =========================
 
         socket.on(
             "disconnect",
@@ -1746,6 +1577,7 @@ io.on(
                     !roomCode ||
                     !playerId
                 ) {
+
                     return;
                 }
 
@@ -1771,12 +1603,6 @@ io.on(
                 }
 
 
-                /*
-                 Only mark this player
-                 disconnected if this socket
-                 is still their active socket.
-                */
-
                 if (
                     player.socketId ===
                     socket.id
@@ -1793,11 +1619,6 @@ io.on(
                 }
 
 
-                /*
-                 Give the player 30 seconds
-                 to reconnect.
-                */
-
                 setTimeout(
                     () => {
 
@@ -1805,7 +1626,10 @@ io.on(
                             rooms[roomCode];
 
 
-                        if (!currentRoom) {
+                        if (
+                            !currentRoom
+                        ) {
+
                             return;
                         }
 
@@ -1820,6 +1644,7 @@ io.on(
                         if (
                             !currentPlayer
                         ) {
+
                             return;
                         }
 
@@ -1827,21 +1652,23 @@ io.on(
                         if (
                             currentPlayer.connected
                         ) {
+
                             return;
                         }
 
 
                         currentRoom.players =
                             currentRoom.players.filter(
-                                (p) =>
-                                    p.playerId !==
+                                player =>
+                                    player.playerId !==
                                     playerId
                             );
 
 
-                        /*
-                         Transfer host if necessary.
-                        */
+                        currentRoom.readyPlayers.delete(
+                            playerId
+                        );
+
 
                         if (
                             currentRoom.hostPlayerId ===
@@ -1850,8 +1677,8 @@ io.on(
 
                             const nextHost =
                                 currentRoom.players.find(
-                                    (p) =>
-                                        p.connected
+                                    player =>
+                                        player.connected
                                 );
 
 
@@ -1866,10 +1693,6 @@ io.on(
 
                         }
 
-
-                        /*
-                         Delete empty room.
-                        */
 
                         if (
                             currentRoom.players.length ===
@@ -1909,7 +1732,6 @@ io.on(
 
 
                             return;
-
                         }
 
 
@@ -1918,6 +1740,7 @@ io.on(
                         );
 
                     },
+
                     DISCONNECT_GRACE_PERIOD
                 );
 
@@ -1927,10 +1750,6 @@ io.on(
     }
 );
 
-
-/* =========================
-   START SERVER
-========================= */
 
 server.listen(
     PORT,
