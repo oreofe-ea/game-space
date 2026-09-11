@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,57 +8,70 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Playroom | Multiplayer Games</title>
+    <title>Game Space | Play Together</title>
 
     <link
         rel="stylesheet"
         href="style.css"
     >
-
 </head>
-
 
 <body>
 
-
     <main class="home">
 
+        <!-- NAVIGATION -->
+        <nav class="game-header">
 
-        <div class="logo">
-            PLAYROOM
-        </div>
+            <a
+                href="index.html"
+                class="logo"
+            >
+                GAME SPACE
+            </a>
+
+            <div class="nav-links">
+
+                <a href="games.html">
+                    Games
+                </a>
+
+                <a href="index.html">
+                    Home
+                </a>
+
+            </div>
+
+        </nav>
 
 
-        <div class="hero">
-
+        <!-- HERO -->
+        <section class="hero">
 
             <p class="eyebrow">
-                MULTIPLAYER GAMES
+                MULTIPLAYER GAME SPACE
             </p>
-
 
             <h1>
                 Think fast.<br>
                 Play together.
             </h1>
 
-
             <p class="intro">
                 Quiz your friends, solve puzzles,
-                compete in bingo and challenge
-                your brain.
+                test your memory and compete
+                to be the best.
             </p>
 
 
             <div class="buttons">
 
-
-                <button
-                    onclick="showCreate()"
+                <a
+                    href="games.html"
+                    class="button-link"
                 >
-                    Create a Game
-                </button>
-
+                    Explore Games
+                </a>
 
                 <button
                     class="secondary"
@@ -69,88 +80,27 @@
                     Join a Game
                 </button>
 
-
             </div>
-
-
-        </div>
-
-
-        <!-- CREATE GAME -->
-
-        <section
-            id="createSection"
-            class="panel hidden"
-        >
-
-            <h2>
-                Create a game
-            </h2>
-
-
-            <p>
-                Choose a game and invite
-                your friends.
-            </p>
-
-
-            <input
-                id="hostName"
-                type="text"
-                placeholder="Your name"
-                maxlength="20"
-            >
-
-
-            <select id="gameType">
-
-                <option value="quiz">
-                    🎯 Quiz
-                </option>
-
-                <option value="puzzle">
-                    🧩 Puzzle
-                </option>
-
-                <option value="bingo">
-                    🎱 Bingo
-                </option>
-
-                <option value="memory">
-                    🧠 Memory Match
-                </option>
-
-                <option value="scramble">
-                    🔤 Word Scramble
-                </option>
-
-            </select>
-
-
-            <button
-                onclick="createGame()"
-            >
-                Create Room
-            </button>
-
 
         </section>
 
 
         <!-- JOIN GAME -->
-
         <section
             id="joinSection"
             class="panel hidden"
         >
 
+            <p class="eyebrow">
+                JOIN A GAME
+            </p>
+
             <h2>
-                Join a game
+                Enter the room
             </h2>
 
-
             <p>
-                Enter the room code from
+                Get the room code from
                 your host.
             </p>
 
@@ -168,6 +118,7 @@
                 type="text"
                 placeholder="Room code"
                 maxlength="6"
+                autocomplete="off"
             >
 
 
@@ -177,9 +128,13 @@
                 Join Room
             </button>
 
-
         </section>
 
+
+        <!-- FOOTER -->
+        <footer>
+            Game Space · Play with your people
+        </footer>
 
     </main>
 
@@ -188,7 +143,5 @@
 
     <script src="app.js"></script>
 
-
 </body>
-
 </html>
