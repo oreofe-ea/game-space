@@ -1,5 +1,12 @@
 const socket = io();
 
+
+/*
+|--------------------------------------------------------------------------
+| ROOM / PLAYER INFORMATION
+|--------------------------------------------------------------------------
+*/
+
 const params =
     new URLSearchParams(
         window.location.search
@@ -73,11 +80,14 @@ const lobbyError =
 
 /*
 |--------------------------------------------------------------------------
-| BASIC VALIDATION
+| VALIDATION
 |--------------------------------------------------------------------------
 */
 
-if (!roomCode || !playerId) {
+if (
+    !roomCode ||
+    !playerId
+) {
 
     window.location.href =
         "/";
@@ -91,8 +101,12 @@ if (!roomCode || !playerId) {
 |--------------------------------------------------------------------------
 */
 
-roomCodeElement.textContent =
-    roomCode || "------";
+if (roomCodeElement) {
+
+    roomCodeElement.textContent =
+        roomCode || "------";
+
+}
 
 
 /*
@@ -110,6 +124,13 @@ socket.on(
             socket.id
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | JOIN / RECONNECT THE PLAYER
+        |--------------------------------------------------------------------------
+        */
+
         socket.emit(
             "joinRoom",
             {
@@ -119,7 +140,7 @@ socket.on(
                 playerId:
                     playerId,
 
-                name:
+                playerName:
                     playerName
             }
         );
@@ -130,27 +151,64 @@ socket.on(
 
 /*
 |--------------------------------------------------------------------------
-| ROOM STATE
+| ROOM UPDATE
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+| The server calls this event "roomUpdate".
+| It contains hostPlayerId.
+|
 |--------------------------------------------------------------------------
 */
 
 socket.on(
-    "roomState",
+    "roomUpdate",
     (room) => {
 
         if (!room) {
             return;
         }
 
-        renderPlayers(
-            room.players || []
+
+        console.log(
+            "Room update:",
+            room
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RENDER PLAYERS
+        |--------------------------------------------------------------------------
+        */
+
+        renderPlayers(
+            room.players || [],
+            room.hostPlayerId
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETERMINE HOST
+        |--------------------------------------------------------------------------
+        |
+        | The SERVER is the source of truth.
+        |
+        */
 
         const isHost =
             room.hostPlayerId ===
             playerId;
 
+
         if (isHost) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | HOST VIEW
+            |--------------------------------------------------------------------------
+            */
 
             hostControls.classList.remove(
                 "hidden"
@@ -160,7 +218,17 @@ socket.on(
                 "hidden"
             );
 
+
+            startMessage.textContent =
+                "You're the host. Start the game when everyone is ready.";
+
         } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | PLAYER VIEW
+            |--------------------------------------------------------------------------
+            */
 
             hostControls.classList.add(
                 "hidden"
@@ -172,13 +240,33 @@ socket.on(
 
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | STORE GAME TYPE
+        |--------------------------------------------------------------------------
+        */
+
+        if (room.gameType) {
+
+            localStorage.setItem(
+                "gameType",
+                room.gameType
+            );
+
+        }
+
     }
 );
 
 
 /*
 |--------------------------------------------------------------------------
-| PLAYER UPDATE
+| PLAYERS UPDATE
+|--------------------------------------------------------------------------
+|
+| Kept for compatibility if the server sends
+| a separate player update in future.
 |--------------------------------------------------------------------------
 */
 
@@ -187,7 +275,8 @@ socket.on(
     (players) => {
 
         renderPlayers(
-            players || []
+            players || [],
+            null
         );
 
     }
@@ -201,17 +290,31 @@ socket.on(
 */
 
 function renderPlayers(
-    players
+    players,
+    hostPlayerId
 ) {
+
+    if (!playersList) {
+        return;
+    }
+
 
     playersList.innerHTML =
         "";
 
-    playerCount.textContent =
-        players.length;
+
+    if (playerCount) {
+
+        playerCount.textContent =
+            players.length;
+
+    }
 
 
-    if (!players.length) {
+    if (
+        players.length ===
+        0
+    ) {
 
         playersList.innerHTML = `
             <div class="empty-players">
@@ -220,11 +323,15 @@ function renderPlayers(
         `;
 
         return;
+
     }
 
 
     players.forEach(
-        (player, index) => {
+        (
+            player,
+            index
+        ) => {
 
             const row =
                 document.createElement(
@@ -234,6 +341,12 @@ function renderPlayers(
             row.className =
                 "lobby-player";
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | AVATAR
+            |--------------------------------------------------------------------------
+            */
 
             const avatar =
                 document.createElement(
@@ -248,6 +361,12 @@ function renderPlayers(
                     player.name
                 );
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | PLAYER INFORMATION
+            |--------------------------------------------------------------------------
+            */
 
             const info =
                 document.createElement(
@@ -267,16 +386,39 @@ function renderPlayers(
                 player.name;
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | PLAYER STATUS
+            |--------------------------------------------------------------------------
+            */
+
             const status =
                 document.createElement(
                     "span"
                 );
 
-            status.textContent =
+
+            const isHost =
+                hostPlayerId &&
                 player.playerId ===
-                getHostId(players)
-                    ? "Host"
-                    : "Player";
+                    hostPlayerId;
+
+
+            if (isHost) {
+
+                status.textContent =
+                    "Host";
+
+                status.classList.add(
+                    "host-status"
+                );
+
+            } else {
+
+                status.textContent =
+                    "Player";
+
+            }
 
 
             info.appendChild(
@@ -287,6 +429,12 @@ function renderPlayers(
                 status
             );
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | PLAYER NUMBER
+            |--------------------------------------------------------------------------
+            */
 
             const number =
                 document.createElement(
@@ -299,6 +447,12 @@ function renderPlayers(
             number.textContent =
                 `#${index + 1}`;
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | BUILD ROW
+            |--------------------------------------------------------------------------
+            */
 
             row.appendChild(
                 avatar
@@ -325,34 +479,7 @@ function renderPlayers(
 
 /*
 |--------------------------------------------------------------------------
-| FIND HOST
-|--------------------------------------------------------------------------
-*/
-
-function getHostId(
-    players
-) {
-
-    /*
-     * The server's roomState normally tells us the host.
-     * If that information isn't available here,
-     * the first player is treated as the visual host.
-     */
-
-    if (
-        players.length > 0
-    ) {
-        return players[0].playerId;
-    }
-
-    return null;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| INITIAL
+| GET PLAYER INITIAL
 |--------------------------------------------------------------------------
 */
 
@@ -363,6 +490,7 @@ function getInitial(
     if (!name) {
         return "?";
     }
+
 
     return name
         .trim()
@@ -378,40 +506,89 @@ function getInitial(
 |--------------------------------------------------------------------------
 */
 
-copyRoomCodeButton.addEventListener(
-    "click",
-    async () => {
+if (copyRoomCodeButton) {
 
-        try {
+    copyRoomCodeButton.addEventListener(
+        "click",
+        async () => {
 
-            await navigator.clipboard.writeText(
-                roomCode
-            );
+            try {
 
-            copyRoomCodeButton.textContent =
-                "Copied!";
+                await navigator.clipboard.writeText(
+                    roomCode
+                );
 
-            setTimeout(
-                () => {
 
-                    copyRoomCodeButton.textContent =
-                        "Copy code";
+                copyRoomCodeButton.textContent =
+                    "Copied!";
 
-                },
-                1500
-            );
 
-        } catch (error) {
+                setTimeout(
+                    () => {
 
-            console.error(
-                "Could not copy room code:",
-                error
-            );
+                        copyRoomCodeButton.textContent =
+                            "Copy code";
+
+                    },
+                    1500
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Could not copy room code:",
+                    error
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | FALLBACK
+                |--------------------------------------------------------------------------
+                */
+
+                const textArea =
+                    document.createElement(
+                        "textarea"
+                    );
+
+                textArea.value =
+                    roomCode;
+
+                document.body.appendChild(
+                    textArea
+                );
+
+                textArea.select();
+
+                document.execCommand(
+                    "copy"
+                );
+
+                textArea.remove();
+
+
+                copyRoomCodeButton.textContent =
+                    "Copied!";
+
+
+                setTimeout(
+                    () => {
+
+                        copyRoomCodeButton.textContent =
+                            "Copy code";
+
+                    },
+                    1500
+                );
+
+            }
 
         }
+    );
 
-    }
-);
+}
 
 
 /*
@@ -420,32 +597,49 @@ copyRoomCodeButton.addEventListener(
 |--------------------------------------------------------------------------
 */
 
-startGameButton.addEventListener(
-    "click",
-    () => {
+if (startGameButton) {
 
-        startGameButton.disabled =
-            true;
+    startGameButton.addEventListener(
+        "click",
+        () => {
 
-        startGameButton.textContent =
-            "Starting...";
+            /*
+            |--------------------------------------------------------------------------
+            | Prevent double clicks
+            |--------------------------------------------------------------------------
+            */
 
-        startMessage.textContent =
-            "Getting everyone ready...";
+            startGameButton.disabled =
+                true;
 
-        socket.emit(
-            "startGame",
-            {
-                roomCode:
-                    roomCode,
 
-                playerId:
-                    playerId
+            startGameButton.textContent =
+                "Starting...";
+
+
+            if (startMessage) {
+
+                startMessage.textContent =
+                    "Getting everyone ready...";
+
             }
-        );
 
-    }
-);
+
+            socket.emit(
+                "startGame",
+                {
+                    roomCode:
+                        roomCode,
+
+                    playerId:
+                        playerId
+                }
+            );
+
+        }
+    );
+
+}
 
 
 /*
@@ -463,14 +657,20 @@ socket.on(
             data
         );
 
-        const gameType =
+
+        const selectedGame =
             data?.gameType ||
+            localStorage.getItem(
+                "gameType"
+            ) ||
             "quiz";
+
 
         localStorage.setItem(
             "gameType",
-            gameType
+            selectedGame
         );
+
 
         window.location.href =
             `/game.html?room=${encodeURIComponent(roomCode)}`;
@@ -481,7 +681,7 @@ socket.on(
 
 /*
 |--------------------------------------------------------------------------
-| ERROR
+| SERVER ERROR
 |--------------------------------------------------------------------------
 */
 
@@ -489,15 +689,26 @@ socket.on(
     "errorMessage",
     (message) => {
 
+        console.error(
+            "Server error:",
+            message
+        );
+
+
         showError(
             message
         );
 
-        startGameButton.disabled =
-            false;
 
-        startGameButton.textContent =
-            "Start game";
+        if (startGameButton) {
+
+            startGameButton.disabled =
+                false;
+
+            startGameButton.textContent =
+                "Start game";
+
+        }
 
     }
 );
@@ -511,7 +722,13 @@ socket.on(
 
 socket.on(
     "connect_error",
-    () => {
+    (error) => {
+
+        console.error(
+            "Socket connection error:",
+            error
+        );
+
 
         showError(
             "Connection lost. Reconnecting..."
@@ -531,8 +748,14 @@ function showError(
     message
 ) {
 
+    if (!lobbyError) {
+        return;
+    }
+
+
     lobbyError.textContent =
         message;
+
 
     lobbyError.classList.remove(
         "hidden"
