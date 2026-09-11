@@ -153,16 +153,20 @@ function sortPlayersByScore(players) {
 // ======================================================
 
 function createQuestionSet(settings = {}) {
+
     const category =
         settings.category || "random";
 
     const difficulty =
         settings.difficulty || "mixed";
 
+
     let count =
         Number(settings.questionCount) ||
         DEFAULT_QUESTIONS_PER_GAME;
 
+
+    // Keep question count within allowed limits
     count = Math.max(
         MIN_QUESTIONS,
         Math.min(
@@ -170,6 +174,202 @@ function createQuestionSet(settings = {}) {
             MAX_QUESTIONS
         )
     );
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | START WITH ALL QUESTIONS
+    |---------------------------------------------------------------------------
+    */
+
+    let categoryPool =
+        [...questionBank];
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | CATEGORY FILTER
+    |---------------------------------------------------------------------------
+    */
+
+    if (category !== "random") {
+
+        const matchingCategory =
+            categoryPool.filter(
+                question =>
+                    question.category ===
+                    category
+            );
+
+
+        /*
+        | If the category exists, use it.
+        | If it doesn't, fall back to the
+        | full question bank.
+        */
+
+        if (
+            matchingCategory.length > 0
+        ) {
+
+            categoryPool =
+                matchingCategory;
+
+        }
+
+    }
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | DIFFICULTY FILTER
+    |---------------------------------------------------------------------------
+    */
+
+    if (difficulty === "mixed") {
+
+        /*
+        | Mixed difficulty:
+        | simply shuffle the category pool.
+        */
+
+        categoryPool =
+            shuffle(
+                categoryPool
+            );
+
+    } else {
+
+        /*
+        |-----------------------------------------------------------------------
+        | PREFERRED DIFFICULTY
+        |-----------------------------------------------------------------------
+        |
+        | First, get questions matching the
+        | requested difficulty.
+        |
+        */
+
+        const preferredQuestions =
+            categoryPool.filter(
+                question =>
+                    question.difficulty ===
+                    difficulty
+            );
+
+
+        /*
+        |-----------------------------------------------------------------------
+        | OTHER DIFFICULTIES
+        |-----------------------------------------------------------------------
+        |
+        | If there aren't enough questions at
+        | the requested difficulty, we fill the
+        | remaining slots with other questions
+        | from the same category.
+        |
+        */
+
+        const otherQuestions =
+            categoryPool.filter(
+                question =>
+                    question.difficulty !==
+                    difficulty
+            );
+
+
+        const shuffledPreferred =
+            shuffle(
+                preferredQuestions
+            );
+
+
+        const shuffledOthers =
+            shuffle(
+                otherQuestions
+            );
+
+
+        categoryPool = [
+            ...shuffledPreferred,
+            ...shuffledOthers
+        ];
+
+    }
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | MAKE SURE WE HAVE QUESTIONS
+    |---------------------------------------------------------------------------
+    */
+
+    if (
+        categoryPool.length === 0
+    ) {
+
+        console.log(
+            "No questions available for selected settings."
+        );
+
+        return [];
+
+    }
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | SELECT QUESTIONS
+    |---------------------------------------------------------------------------
+    */
+
+    const selectedQuestions =
+        categoryPool.slice(
+            0,
+            Math.min(
+                count,
+                categoryPool.length
+            )
+        );
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | LOG GAME GENERATION
+    |---------------------------------------------------------------------------
+    */
+
+    console.log(
+        `Generated ${selectedQuestions.length} questions | Category: ${category} | Difficulty: ${difficulty}`
+    );
+
+
+    /*
+    |---------------------------------------------------------------------------
+    | RETURN CLEAN QUESTION OBJECTS
+    |---------------------------------------------------------------------------
+    |
+    | We deliberately do NOT send the correct
+    | answer to the client.
+    |
+    */
+
+    return selectedQuestions.map(
+        question => ({
+
+            question:
+                question.question,
+
+            answers:
+                [...question.answers],
+
+            correct:
+                question.correct
+
+        })
+    );
+
+}
 
     let available = [...questionBank];
 
