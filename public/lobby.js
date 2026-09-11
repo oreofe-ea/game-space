@@ -1,74 +1,126 @@
 const socket = io();
 
-
-// =========================
-// GET ROOM
-// =========================
-
 const params =
     new URLSearchParams(
         window.location.search
     );
 
-
 const roomCode =
     params.get("room");
-
-
-// =========================
-// GET PLAYER ID
-// =========================
 
 const playerId =
     localStorage.getItem(
         "playerId"
     );
 
-
-// =========================
-// DISPLAY ROOM CODE
-// =========================
-
-document.getElementById(
-    "roomCodeDisplay"
-).textContent = roomCode;
-
-
-// =========================
-// COPY ROOM CODE
-// =========================
-
-function copyRoomCode() {
-
-    navigator.clipboard.writeText(
-        roomCode
+const playerName =
+    localStorage.getItem(
+        "playerName"
     );
 
-    alert(
-        "Room code copied!"
+
+/*
+|--------------------------------------------------------------------------
+| ELEMENTS
+|--------------------------------------------------------------------------
+*/
+
+const roomCodeElement =
+    document.getElementById(
+        "roomCode"
     );
+
+const copyRoomCodeButton =
+    document.getElementById(
+        "copyRoomCode"
+    );
+
+const playersList =
+    document.getElementById(
+        "playersList"
+    );
+
+const playerCount =
+    document.getElementById(
+        "playerCount"
+    );
+
+const hostControls =
+    document.getElementById(
+        "hostControls"
+    );
+
+const startGameButton =
+    document.getElementById(
+        "startGameButton"
+    );
+
+const startMessage =
+    document.getElementById(
+        "startMessage"
+    );
+
+const waitingMessage =
+    document.getElementById(
+        "waitingMessage"
+    );
+
+const lobbyError =
+    document.getElementById(
+        "lobbyError"
+    );
+
+
+/*
+|--------------------------------------------------------------------------
+| BASIC VALIDATION
+|--------------------------------------------------------------------------
+*/
+
+if (!roomCode || !playerId) {
+
+    window.location.href =
+        "/";
 
 }
 
 
-// =========================
-// RECONNECT TO ROOM
-// =========================
+/*
+|--------------------------------------------------------------------------
+| DISPLAY ROOM CODE
+|--------------------------------------------------------------------------
+*/
+
+roomCodeElement.textContent =
+    roomCode || "------";
+
+
+/*
+|--------------------------------------------------------------------------
+| CONNECT
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "connect",
     () => {
 
-        socket.emit(
-            "reconnectToRoom",
-            {
+        console.log(
+            "Connected to lobby:",
+            socket.id
+        );
 
+        socket.emit(
+            "joinRoom",
+            {
                 roomCode:
                     roomCode,
 
                 playerId:
-                    playerId
+                    playerId,
 
+                name:
+                    playerName
             }
         );
 
@@ -76,21 +128,194 @@ socket.on(
 );
 
 
-// =========================
-// START GAME
-// =========================
+/*
+|--------------------------------------------------------------------------
+| ROOM STATE
+|--------------------------------------------------------------------------
+*/
 
-function startGame() {
+socket.on(
+    "roomState",
+    (room) => {
 
-    socket.emit(
-        "startGame",
-        {
+        if (!room) {
+            return;
+        }
 
-            roomCode:
-                roomCode,
+        renderPlayers(
+            room.players || []
+        );
 
-            playerId:
-                playerId
+        const isHost =
+            room.hostPlayerId ===
+            playerId;
+
+        if (isHost) {
+
+            hostControls.classList.remove(
+                "hidden"
+            );
+
+            waitingMessage.classList.add(
+                "hidden"
+            );
+
+        } else {
+
+            hostControls.classList.add(
+                "hidden"
+            );
+
+            waitingMessage.classList.remove(
+                "hidden"
+            );
+
+        }
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| PLAYER UPDATE
+|--------------------------------------------------------------------------
+*/
+
+socket.on(
+    "playersUpdate",
+    (players) => {
+
+        renderPlayers(
+            players || []
+        );
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| RENDER PLAYERS
+|--------------------------------------------------------------------------
+*/
+
+function renderPlayers(
+    players
+) {
+
+    playersList.innerHTML =
+        "";
+
+    playerCount.textContent =
+        players.length;
+
+
+    if (!players.length) {
+
+        playersList.innerHTML = `
+            <div class="empty-players">
+                Waiting for players...
+            </div>
+        `;
+
+        return;
+    }
+
+
+    players.forEach(
+        (player, index) => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "lobby-player";
+
+
+            const avatar =
+                document.createElement(
+                    "div"
+                );
+
+            avatar.className =
+                "player-avatar";
+
+            avatar.textContent =
+                getInitial(
+                    player.name
+                );
+
+
+            const info =
+                document.createElement(
+                    "div"
+                );
+
+            info.className =
+                "player-info";
+
+
+            const name =
+                document.createElement(
+                    "strong"
+                );
+
+            name.textContent =
+                player.name;
+
+
+            const status =
+                document.createElement(
+                    "span"
+                );
+
+            status.textContent =
+                player.playerId ===
+                getHostId(players)
+                    ? "Host"
+                    : "Player";
+
+
+            info.appendChild(
+                name
+            );
+
+            info.appendChild(
+                status
+            );
+
+
+            const number =
+                document.createElement(
+                    "span"
+                );
+
+            number.className =
+                "player-number";
+
+            number.textContent =
+                `#${index + 1}`;
+
+
+            row.appendChild(
+                avatar
+            );
+
+            row.appendChild(
+                info
+            );
+
+            row.appendChild(
+                number
+            );
+
+
+            playersList.appendChild(
+                row
+            );
 
         }
     );
@@ -98,99 +323,90 @@ function startGame() {
 }
 
 
-// =========================
-// ROOM UPDATES
-// =========================
+/*
+|--------------------------------------------------------------------------
+| FIND HOST
+|--------------------------------------------------------------------------
+*/
 
-socket.on(
-    "roomUpdate",
-    (room) => {
+function getHostId(
+    players
+) {
 
-        const playersContainer =
-            document.getElementById(
-                "players"
+    /*
+     * The server's roomState normally tells us the host.
+     * If that information isn't available here,
+     * the first player is treated as the visual host.
+     */
+
+    if (
+        players.length > 0
+    ) {
+        return players[0].playerId;
+    }
+
+    return null;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| INITIAL
+|--------------------------------------------------------------------------
+*/
+
+function getInitial(
+    name
+) {
+
+    if (!name) {
+        return "?";
+    }
+
+    return name
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| COPY ROOM CODE
+|--------------------------------------------------------------------------
+*/
+
+copyRoomCodeButton.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                roomCode
             );
 
+            copyRoomCodeButton.textContent =
+                "Copied!";
 
-        playersContainer.innerHTML =
-            "";
+            setTimeout(
+                () => {
 
+                    copyRoomCodeButton.textContent =
+                        "Copy code";
 
-        room.players.forEach(
-            (player) => {
-
-                const playerElement =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                playerElement.className =
-                    "player";
-
-
-                playerElement.textContent =
-                    player.name;
-
-
-                // Show host label
-                if (
-                    player.playerId ===
-                    room.hostPlayerId
-                ) {
-
-                    playerElement.textContent +=
-                        " 👑";
-
-                }
-
-
-                playersContainer.appendChild(
-                    playerElement
-                );
-
-            }
-        );
-
-
-        // =========================
-        // DETERMINE HOST
-        // =========================
-
-        const isHost =
-            room.hostPlayerId ===
-            playerId;
-
-
-        const startButton =
-            document.getElementById(
-                "startButton"
+                },
+                1500
             );
 
+        } catch (error) {
 
-        const waiting =
-            document.getElementById(
-                "waiting"
+            console.error(
+                "Could not copy room code:",
+                error
             );
-
-
-        if (isHost) {
-
-            startButton.style.display =
-                "block";
-
-            waiting.style.display =
-                "none";
-
-        }
-
-        else {
-
-            startButton.style.display =
-                "none";
-
-            waiting.style.display =
-                "block";
 
         }
 
@@ -198,36 +414,144 @@ socket.on(
 );
 
 
-// =========================
-// GAME STARTED
-// =========================
+/*
+|--------------------------------------------------------------------------
+| START GAME
+|--------------------------------------------------------------------------
+*/
+
+startGameButton.addEventListener(
+    "click",
+    () => {
+
+        startGameButton.disabled =
+            true;
+
+        startGameButton.textContent =
+            "Starting...";
+
+        startMessage.textContent =
+            "Getting everyone ready...";
+
+        socket.emit(
+            "startGame",
+            {
+                roomCode:
+                    roomCode,
+
+                playerId:
+                    playerId
+            }
+        );
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| GAME STARTED
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "gameStarted",
-    ({ gameType }) => {
+    (data) => {
+
+        console.log(
+            "Game starting:",
+            data
+        );
+
+        const gameType =
+            data?.gameType ||
+            "quiz";
 
         localStorage.setItem(
             "gameType",
             gameType
         );
 
-
         window.location.href =
-            `/game.html?room=${roomCode}`;
+            `/game.html?room=${encodeURIComponent(roomCode)}`;
 
     }
 );
 
 
-// =========================
-// ERROR
-// =========================
+/*
+|--------------------------------------------------------------------------
+| ERROR
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "errorMessage",
     (message) => {
 
-        alert(message);
+        showError(
+            message
+        );
+
+        startGameButton.disabled =
+            false;
+
+        startGameButton.textContent =
+            "Start game";
 
     }
 );
+
+
+/*
+|--------------------------------------------------------------------------
+| CONNECTION ERROR
+|--------------------------------------------------------------------------
+*/
+
+socket.on(
+    "connect_error",
+    () => {
+
+        showError(
+            "Connection lost. Reconnecting..."
+        );
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| ERROR DISPLAY
+|--------------------------------------------------------------------------
+*/
+
+function showError(
+    message
+) {
+
+    lobbyError.textContent =
+        message;
+
+    lobbyError.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| LEAVE LOBBY
+|--------------------------------------------------------------------------
+*/
+
+function leaveLobby() {
+
+    socket.disconnect();
+
+    window.location.href =
+        "/games.html";
+
+}
