@@ -1,67 +1,93 @@
 const socket = io();
 
 
+/*
+|--------------------------------------------------------------------------
+| URL / PLAYER INFORMATION
+|--------------------------------------------------------------------------
+*/
+
 const params =
     new URLSearchParams(
         window.location.search
     );
 
-
 const roomCode =
     params.get("room");
-
 
 const playerId =
     localStorage.getItem(
         "playerId"
     );
 
+const gameType =
+    localStorage.getItem(
+        "gameType"
+    ) || "quiz";
 
-let currentQuestion =
-    null;
 
-let timerInterval =
-    null;
+/*
+|--------------------------------------------------------------------------
+| GAME STATE
+|--------------------------------------------------------------------------
+*/
 
-let hasAnswered =
-    false;
+let currentQuestion = null;
 
+let timerInterval = null;
+
+let hasAnswered = false;
+
+let currentTimeLimit = 15;
+
+let currentTimeLeft = 15;
+
+
+/*
+|--------------------------------------------------------------------------
+| ELEMENTS
+|--------------------------------------------------------------------------
+*/
 
 const questionElement =
     document.getElementById(
         "question"
     );
 
-
 const questionNumberElement =
     document.getElementById(
         "questionNumber"
     );
-
 
 const timerElement =
     document.getElementById(
         "timer"
     );
 
-
 const timerProgress =
     document.getElementById(
         "timerProgress"
     );
-
 
 const answerMessage =
     document.getElementById(
         "answerMessage"
     );
 
-
 const scoreboard =
     document.getElementById(
         "scoreboard"
     );
 
+const resultsNavigation =
+    document.getElementById(
+        "resultsNavigation"
+    );
+
+const playAgainButton =
+    document.getElementById(
+        "playAgainButton"
+    );
 
 const answerButtons =
     document.querySelectorAll(
@@ -69,42 +95,57 @@ const answerButtons =
     );
 
 
-// =========================
-// CONNECT + READY
-// =========================
+/*
+|--------------------------------------------------------------------------
+| GAME READY
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "connect",
     () => {
-
-        socket.emit(
-            "gameReady",
-            {
-
-                roomCode:
-                    roomCode,
-
-                playerId:
-                    playerId
-
-            }
-        );
 
         console.log(
             "Connected to Game Space:",
             socket.id
         );
 
+
+        socket.emit(
+            "gameReady",
+            {
+                roomCode:
+                    roomCode,
+
+                playerId:
+                    playerId
+            }
+        );
+
     }
 );
 
 
-// =========================
-// ANSWER BUTTONS
-// =========================
+socket.on(
+    "gameReadyConfirmed",
+    () => {
+
+        console.log(
+            "Game page is ready."
+        );
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| ANSWER BUTTONS
+|--------------------------------------------------------------------------
+*/
 
 answerButtons.forEach(
-    button => {
+    (button) => {
 
         button.addEventListener(
             "click",
@@ -114,7 +155,6 @@ answerButtons.forEach(
                     Number(
                         button.dataset.index
                     );
-
 
                 submitAnswer(
                     answerIndex,
@@ -128,9 +168,11 @@ answerButtons.forEach(
 );
 
 
-// =========================
-// SUBMIT ANSWER
-// =========================
+/*
+|--------------------------------------------------------------------------
+| SUBMIT ANSWER
+|--------------------------------------------------------------------------
+*/
 
 function submitAnswer(
     answerIndex,
@@ -141,7 +183,6 @@ function submitAnswer(
         hasAnswered ||
         !currentQuestion
     ) {
-
         return;
     }
 
@@ -151,7 +192,7 @@ function submitAnswer(
 
 
     answerButtons.forEach(
-        button => {
+        (button) => {
 
             button.disabled =
                 true;
@@ -168,7 +209,6 @@ function submitAnswer(
     socket.emit(
         "submitAnswer",
         {
-
             roomCode:
                 roomCode,
 
@@ -177,36 +217,47 @@ function submitAnswer(
 
             answerIndex:
                 answerIndex
-
         }
     );
+
 }
 
 
-// =========================
-// NEW QUESTION
-// =========================
+/*
+|--------------------------------------------------------------------------
+| NEW QUESTION
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "newQuestion",
-    question => {
+    (question) => {
 
         currentQuestion =
             question;
-
 
         hasAnswered =
             false;
 
 
+        currentTimeLimit =
+            question.timeLimit;
+
+        currentTimeLeft =
+            question.timeLimit;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESET ANSWERS
+        |--------------------------------------------------------------------------
+        */
+
         answerButtons.forEach(
-            button => {
+            (button) => {
 
                 button.disabled =
                     false;
-
-                button.style.display =
-                    "flex";
 
                 button.classList.remove(
                     "selected-answer"
@@ -220,9 +271,8 @@ socket.on(
                     "wrong-answer"
                 );
 
-                button.classList.remove(
-                    "answer-changing"
-                );
+                button.style.display =
+                    "flex";
 
             }
         );
@@ -233,17 +283,27 @@ socket.on(
         );
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | QUESTION NUMBER
+        |--------------------------------------------------------------------------
+        */
+
         questionNumberElement.textContent =
             `Question ${question.number} of ${question.total}`;
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | QUESTION ANIMATION
+        |--------------------------------------------------------------------------
+        */
 
         questionElement.classList.remove(
             "question-changing"
         );
 
-
         void questionElement.offsetWidth;
-
 
         questionElement.classList.add(
             "question-changing"
@@ -254,36 +314,40 @@ socket.on(
             question.question;
 
 
-        question.answers.forEach(
-            (answer, index) => {
+        /*
+        |--------------------------------------------------------------------------
+        | ANSWER OPTIONS
+        |--------------------------------------------------------------------------
+        */
 
-                if (
-                    !answerButtons[index]
-                ) {
+        answerButtons.forEach(
+            (button, index) => {
 
-                    return;
-                }
+                button.textContent =
+                    question.answers[index];
 
-
-                answerButtons[index].textContent =
-                    answer;
-
-
-                answerButtons[index].style.animationDelay =
-                    `${index * 0.06}s`;
-
-
-                void answerButtons[index]
-                    .offsetWidth;
-
-
-                answerButtons[index].classList.add(
+                button.classList.remove(
                     "answer-changing"
                 );
+
+                void button.offsetWidth;
+
+                button.classList.add(
+                    "answer-changing"
+                );
+
+                button.style.animationDelay =
+                    `${index * 0.06}s`;
 
             }
         );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | TIMER
+        |--------------------------------------------------------------------------
+        */
 
         startTimer(
             question.timeLimit
@@ -293,9 +357,11 @@ socket.on(
 );
 
 
-// =========================
-// TIMER
-// =========================
+/*
+|--------------------------------------------------------------------------
+| TIMER
+|--------------------------------------------------------------------------
+*/
 
 function startTimer(
     seconds
@@ -307,6 +373,13 @@ function startTimer(
 
 
     let timeLeft =
+        seconds;
+
+
+    currentTimeLimit =
+        seconds;
+
+    currentTimeLeft =
         seconds;
 
 
@@ -346,6 +419,9 @@ function startTimer(
 
                 timeLeft--;
 
+                currentTimeLeft =
+                    timeLeft;
+
 
                 timerElement.textContent =
                     Math.max(
@@ -355,11 +431,17 @@ function startTimer(
 
 
                 if (
-                    timeLeft <=
-                    5
+                    timeLeft <= 5 &&
+                    timeLeft > 0
                 ) {
 
                     timerElement.classList.add(
+                        "timer-warning"
+                    );
+
+                } else {
+
+                    timerElement.classList.remove(
                         "timer-warning"
                     );
 
@@ -367,12 +449,16 @@ function startTimer(
 
 
                 if (
-                    timeLeft <=
-                    0
+                    timeLeft <= 0
                 ) {
 
                     clearInterval(
                         timerInterval
+                    );
+
+
+                    timerElement.classList.remove(
+                        "timer-warning"
                     );
 
 
@@ -385,7 +471,7 @@ function startTimer(
 
 
                         answerButtons.forEach(
-                            button => {
+                            (button) => {
 
                                 button.disabled =
                                     true;
@@ -404,15 +490,17 @@ function startTimer(
                 }
 
             },
-
             1000
         );
+
 }
 
 
-// =========================
-// ANSWER RESULT
-// =========================
+/*
+|--------------------------------------------------------------------------
+| ANSWER RESULT
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "answerResult",
@@ -430,7 +518,7 @@ socket.on(
 
 
             answerButtons.forEach(
-                button => {
+                (button) => {
 
                     if (
                         button.classList.contains(
@@ -441,7 +529,6 @@ socket.on(
                         button.classList.remove(
                             "selected-answer"
                         );
-
 
                         button.classList.add(
                             "correct-answer"
@@ -461,7 +548,7 @@ socket.on(
 
 
             answerButtons.forEach(
-                button => {
+                (button) => {
 
                     if (
                         button.classList.contains(
@@ -472,7 +559,6 @@ socket.on(
                         button.classList.remove(
                             "selected-answer"
                         );
-
 
                         button.classList.add(
                             "wrong-answer"
@@ -489,9 +575,11 @@ socket.on(
 );
 
 
-// =========================
-// ANSWER MESSAGE
-// =========================
+/*
+|--------------------------------------------------------------------------
+| ANSWER MESSAGE
+|--------------------------------------------------------------------------
+*/
 
 function showAnswerMessage(
     text,
@@ -551,23 +639,24 @@ function showAnswerMessage(
         "message-pop"
     );
 
-
     void answerMessage.offsetWidth;
-
 
     answerMessage.classList.add(
         "message-pop"
     );
+
 }
 
 
-// =========================
-// LIVE SCORES
-// =========================
+/*
+|--------------------------------------------------------------------------
+| SCORE UPDATE
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "scoreUpdate",
-    players => {
+    (players) => {
 
         renderScoreboard(
             players
@@ -576,6 +665,12 @@ socket.on(
     }
 );
 
+
+/*
+|--------------------------------------------------------------------------
+| LIVE SCOREBOARD
+|--------------------------------------------------------------------------
+*/
 
 function renderScoreboard(
     players
@@ -606,7 +701,6 @@ function renderScoreboard(
                     "div"
                 );
 
-
             row.className =
                 "player score-row";
 
@@ -616,30 +710,24 @@ function renderScoreboard(
                     "span"
                 );
 
-
             position.className =
                 "score-position";
 
 
-            if (
-                index ===
-                0
-            ) {
+            if (index === 0) {
 
                 position.textContent =
                     "🥇";
 
             } else if (
-                index ===
-                1
+                index === 1
             ) {
 
                 position.textContent =
                     "🥈";
 
             } else if (
-                index ===
-                2
+                index === 2
             ) {
 
                 position.textContent =
@@ -658,10 +746,8 @@ function renderScoreboard(
                     "span"
                 );
 
-
             name.className =
                 "score-name";
-
 
             name.textContent =
                 player.name;
@@ -672,10 +758,8 @@ function renderScoreboard(
                     "span"
                 );
 
-
             score.className =
                 "score-value";
-
 
             score.textContent =
                 player.score;
@@ -700,25 +784,33 @@ function renderScoreboard(
 
         }
     );
+
 }
 
 
-// =========================
-// GAME FINISHED
-// =========================
+/*
+|--------------------------------------------------------------------------
+| GAME FINISHED
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "gameFinished",
-    players => {
+    (players) => {
 
         clearInterval(
             timerInterval
         );
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | STOP TIMER
+        |--------------------------------------------------------------------------
+        */
+
         timerElement.textContent =
             "";
-
 
         timerElement.classList.remove(
             "timer-warning"
@@ -736,6 +828,12 @@ socket.on(
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | CHANGE QUESTION HEADER
+        |--------------------------------------------------------------------------
+        */
+
         questionNumberElement.textContent =
             "Final Results";
 
@@ -744,6 +842,7 @@ socket.on(
             "question-changing"
         );
 
+        void questionElement.offsetWidth;
 
         questionElement.classList.add(
             "game-over-animation"
@@ -754,8 +853,14 @@ socket.on(
             "🏆 Game Over!";
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | HIDE ANSWERS
+        |--------------------------------------------------------------------------
+        */
+
         answerButtons.forEach(
-            button => {
+            (button) => {
 
                 button.style.display =
                     "none";
@@ -769,20 +874,36 @@ socket.on(
         );
 
 
-        renderFinalScores(
-            players
+        /*
+        |--------------------------------------------------------------------------
+        | SHOW RESULTS NAVIGATION
+        |--------------------------------------------------------------------------
+        */
+
+        resultsNavigation.classList.remove(
+            "hidden"
         );
 
 
-        addResultsButtons();
+        /*
+        |--------------------------------------------------------------------------
+        | FINAL SCORES
+        |--------------------------------------------------------------------------
+        */
+
+        renderFinalScores(
+            players
+        );
 
     }
 );
 
 
-// =========================
-// FINAL SCORES
-// =========================
+/*
+|--------------------------------------------------------------------------
+| FINAL SCOREBOARD
+|--------------------------------------------------------------------------
+*/
 
 function renderFinalScores(
     players
@@ -808,15 +929,11 @@ function renderFinalScores(
                     "div"
                 );
 
-
             row.className =
-                "player score-row";
+                "player score-row final-score-row";
 
 
-            if (
-                index ===
-                0
-            ) {
+            if (index === 0) {
 
                 row.classList.add(
                     "winner"
@@ -830,30 +947,24 @@ function renderFinalScores(
                     "span"
                 );
 
-
             position.className =
                 "score-position";
 
 
-            if (
-                index ===
-                0
-            ) {
+            if (index === 0) {
 
                 position.textContent =
                     "🏆";
 
             } else if (
-                index ===
-                1
+                index === 1
             ) {
 
                 position.textContent =
                     "🥈";
 
             } else if (
-                index ===
-                2
+                index === 2
             ) {
 
                 position.textContent =
@@ -872,10 +983,8 @@ function renderFinalScores(
                     "span"
                 );
 
-
             name.className =
                 "score-name";
-
 
             name.textContent =
                 player.name;
@@ -886,10 +995,8 @@ function renderFinalScores(
                     "span"
                 );
 
-
             score.className =
                 "score-value";
-
 
             score.textContent =
                 `${player.score} pts`;
@@ -914,131 +1021,41 @@ function renderFinalScores(
 
         }
     );
+
 }
 
 
-// =========================
-// RESULTS BUTTONS
-// =========================
+/*
+|--------------------------------------------------------------------------
+| PLAY AGAIN
+|--------------------------------------------------------------------------
+|
+| For now, "Play again" creates a fresh room.
+| Later, when we upgrade server.js, we can make
+| this a true rematch inside the same room.
+|--------------------------------------------------------------------------
+*/
 
-function addResultsButtons() {
+playAgainButton.addEventListener(
+    "click",
+    () => {
 
-    if (
-        document.getElementById(
-            "resultsActions"
-        )
-    ) {
+        window.location.href =
+            `/index.html?game=${encodeURIComponent(gameType)}&create=1`;
 
-        return;
     }
+);
 
 
-    const actions =
-        document.createElement(
-            "div"
-        );
-
-
-    actions.id =
-        "resultsActions";
-
-
-    actions.className =
-        "buttons";
-
-
-    actions.style.marginTop =
-        "24px";
-
-
-    const playAgain =
-        document.createElement(
-            "button"
-        );
-
-
-    playAgain.textContent =
-        "Play Again";
-
-
-    playAgain.onclick =
-        () => {
-
-            window.location.href =
-                `/setup.html?game=quiz`;
-
-        };
-
-
-    const chooseGame =
-        document.createElement(
-            "a"
-        );
-
-
-    chooseGame.href =
-        "games.html";
-
-
-    chooseGame.className =
-        "button-link secondary";
-
-
-    chooseGame.textContent =
-        "Choose Another Game";
-
-
-    const home =
-        document.createElement(
-            "a"
-        );
-
-
-    home.href =
-        "index.html";
-
-
-    home.className =
-        "button-link secondary";
-
-
-    home.textContent =
-        "Back Home";
-
-
-    actions.appendChild(
-        playAgain
-    );
-
-
-    actions.appendChild(
-        chooseGame
-    );
-
-
-    actions.appendChild(
-        home
-    );
-
-
-    document
-        .querySelector(
-            ".question-panel"
-        )
-        .appendChild(
-            actions
-        );
-
-}
-
-
-// =========================
-// ERRORS
-// =========================
+/*
+|--------------------------------------------------------------------------
+| SERVER ERROR
+|--------------------------------------------------------------------------
+*/
 
 socket.on(
     "errorMessage",
-    message => {
+    (message) => {
 
         alert(
             message
@@ -1048,13 +1065,17 @@ socket.on(
 );
 
 
+/*
+|--------------------------------------------------------------------------
+| CONNECTION ERROR
+|--------------------------------------------------------------------------
+*/
+
 socket.on(
     "connect_error",
     () => {
 
-        if (
-            questionElement
-        ) {
+        if (questionElement) {
 
             questionElement.textContent =
                 "Reconnecting to game...";
