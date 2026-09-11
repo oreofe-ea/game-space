@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
@@ -10,14 +9,11 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Quiz Arena | Game Space
-    </title>
+    <title>Quiz Arena | Game Space</title>
 
-    <!-- v4 forces browsers to load the new CSS -->
     <link
         rel="stylesheet"
-        href="style.css?v=4"
+        href="style.css?v=5"
     >
 
 </head>
@@ -25,160 +21,206 @@
 
 <body>
 
-    <main class="home">
+    <main class="page-shell">
 
-        <header class="game-header">
+        <!-- HEADER -->
+        <header class="site-header">
 
-            <div class="logo">
+            <a
+                href="/"
+                class="brand"
+            >
                 GAME SPACE
-            </div>
+            </a>
 
-            <div class="game-label">
-                <span>●</span>
-                LIVE GAME
+            <div class="game-header-right">
+
+                <div class="game-label">
+                    <span>●</span>
+                    LIVE GAME
+                </div>
+
+                <a
+                    href="/games.html"
+                    class="header-games-link"
+                >
+                    Games
+                </a>
+
             </div>
 
         </header>
 
 
-        <!-- QUESTION -->
+        <!-- GAME -->
+        <section class="game-layout">
 
-        <section
-            class="panel question-panel"
-        >
+            <!-- QUESTION -->
+            <section
+                class="panel question-panel"
+            >
 
-            <div class="question-top">
+                <div class="question-top">
 
-                <div class="eyebrow">
-                    QUIZ ARENA
-                </div>
+                    <div>
 
-                <div id="questionNumber">
-                    Question 1
-                </div>
+                        <p class="eyebrow">
+                            QUIZ ARENA
+                        </p>
 
-            </div>
-
-
-            <div class="timer-area">
-
-                <div
-                    id="timer"
-                    aria-label="Time remaining"
-                >
-                    15
-                </div>
-
-                <div class="timer-track">
-
-                    <div
-                        id="timerProgress"
-                        class="timer-progress"
-                    ></div>
-
-                </div>
-
-            </div>
-
-
-            <h1 id="question">
-                Loading question...
-            </h1>
-
-
-            <div id="answers">
-
-                <button
-                    class="answer"
-                    data-index="0"
-                    type="button"
-                >
-                    Loading...
-                </button>
-
-
-                <button
-                    class="answer"
-                    data-index="1"
-                    type="button"
-                >
-                    Loading...
-                </button>
-
-
-                <button
-                    class="answer"
-                    data-index="2"
-                    type="button"
-                >
-                    Loading...
-                </button>
-
-
-                <button
-                    class="answer"
-                    data-index="3"
-                    type="button"
-                >
-                    Loading...
-                </button>
-
-            </div>
-
-
-            <p
-                id="answerMessage"
-                class="hidden"
-            ></p>
-
-        </section>
-
-
-        <!-- SCOREBOARD -->
-
-        <section class="panel score-panel">
-
-            <div class="question-top">
-
-                <div>
-
-                    <div
-                        class="eyebrow"
-                        style="margin-bottom: 5px;"
-                    >
-                        CURRENT STANDINGS
                     </div>
 
-                    <h2>
-                        Live Scores
-                    </h2>
+                    <div
+                        id="questionNumber"
+                        class="question-number"
+                    >
+                        Question 1
+                    </div>
 
                 </div>
 
-            </div>
 
+                <!-- TIMER -->
+                <div class="timer-area">
 
-            <div id="scoreboard">
+                    <div
+                        id="timer"
+                        aria-label="Time remaining"
+                    >
+                        15
+                    </div>
 
-                <div class="player">
-                    Connecting to game...
+                    <div class="timer-track">
+
+                        <div
+                            id="timerProgress"
+                            class="timer-progress"
+                        ></div>
+
+                    </div>
+
                 </div>
 
-            </div>
+
+                <!-- QUESTION -->
+                <h1 id="question">
+                    Loading question...
+                </h1>
+
+
+                <!-- ANSWERS -->
+                <div id="answers">
+
+                    <button
+                        class="answer"
+                        data-index="0"
+                    >
+                        Loading...
+                    </button>
+
+                    <button
+                        class="answer"
+                        data-index="1"
+                    >
+                        Loading...
+                    </button>
+
+                    <button
+                        class="answer"
+                        data-index="2"
+                    >
+                        Loading...
+                    </button>
+
+                    <button
+                        class="answer"
+                        data-index="3"
+                    >
+                        Loading...
+                    </button>
+
+                </div>
+
+
+                <!-- ANSWER MESSAGE -->
+                <p
+                    id="answerMessage"
+                    class="hidden"
+                ></p>
+
+
+                <!-- RESULTS NAVIGATION -->
+                <div
+                    id="resultsNavigation"
+                    class="results-navigation hidden"
+                >
+
+                    <button
+                        id="playAgainButton"
+                        class="primary-button"
+                    >
+                        Play again
+                    </button>
+
+                    <a
+                        href="/games.html"
+                        class="secondary-button"
+                    >
+                        Game hub
+                    </a>
+
+                    <a
+                        href="/"
+                        class="text-button"
+                    >
+                        Back home
+                    </a>
+
+                </div>
+
+            </section>
+
+
+            <!-- LIVE SCOREBOARD -->
+            <section
+                class="panel score-panel"
+            >
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            CURRENT STANDINGS
+                        </p>
+
+                        <h2>
+                            Live Scores
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div id="scoreboard">
+
+                    <div class="player">
+                        Loading scores...
+                    </div>
+
+                </div>
+
+            </section>
 
         </section>
 
     </main>
 
 
-    <script
-        src="/socket.io/socket.io.js"
-    ></script>
+    <script src="/socket.io/socket.io.js"></script>
 
-    <script
-        src="game.js?v=4"
-    ></script>
+    <script src="game.js?v=5"></script>
 
 </body>
-
 </html>
