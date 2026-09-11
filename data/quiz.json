@@ -1,0 +1,512 @@
+[
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "Which planet is known as the Red Planet?",
+        "answers": [
+            "Venus",
+            "Mars",
+            "Jupiter",
+            "Saturn"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "How many continents are there?",
+        "answers": [
+            "5",
+            "6",
+            "7",
+            "8"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "What is the boiling point of water at sea level?",
+        "answers": [
+            "50°C",
+            "75°C",
+            "100°C",
+            "150°C"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "Which instrument has black and white keys?",
+        "answers": [
+            "Guitar",
+            "Piano",
+            "Drum",
+            "Trumpet"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "How many sides does a triangle have?",
+        "answers": [
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "general",
+        "difficulty": "easy",
+        "question": "Which organ pumps blood around the human body?",
+        "answers": [
+            "Lungs",
+            "Brain",
+            "Heart",
+            "Kidney"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "general",
+        "difficulty": "medium",
+        "question": "Which ocean is the largest?",
+        "answers": [
+            "Atlantic Ocean",
+            "Indian Ocean",
+            "Pacific Ocean",
+            "Arctic Ocean"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "general",
+        "difficulty": "medium",
+        "question": "Which country gifted the Statue of Liberty to the United States?",
+        "answers": [
+            "France",
+            "Spain",
+            "Italy",
+            "Germany"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "general",
+        "difficulty": "medium",
+        "question": "Which language is primarily spoken in Brazil?",
+        "answers": [
+            "Spanish",
+            "Portuguese",
+            "French",
+            "English"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "general",
+        "difficulty": "medium",
+        "question": "What is 12 × 5?",
+        "answers": [
+            "50",
+            "55",
+            "60",
+            "65"
+        ],
+        "correct": 2
+    },
+
+    {
+        "category": "africa",
+        "difficulty": "easy",
+        "question": "Which country is the most populous in Africa?",
+        "answers": [
+            "Nigeria",
+            "Egypt",
+            "South Africa",
+            "Ethiopia"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "africa",
+        "difficulty": "easy",
+        "question": "What is the capital city of Ghana?",
+        "answers": [
+            "Kumasi",
+            "Accra",
+            "Lagos",
+            "Tamale"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "africa",
+        "difficulty": "easy",
+        "question": "Which country is famous for the Maasai people?",
+        "answers": [
+            "Kenya",
+            "Nigeria",
+            "Ghana",
+            "Senegal"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "africa",
+        "difficulty": "easy",
+        "question": "Which country is home to the pyramids of Giza?",
+        "answers": [
+            "Egypt",
+            "Morocco",
+            "Sudan",
+            "Tunisia"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "africa",
+        "difficulty": "medium",
+        "question": "Which African country has Addis Ababa as its capital?",
+        "answers": [
+            "Ethiopia",
+            "Eritrea",
+            "Somalia",
+            "Kenya"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "africa",
+        "difficulty": "medium",
+        "question": "Which African country is completely surrounded by South Africa?",
+        "answers": [
+            "Eswatini",
+            "Lesotho",
+            "Botswana",
+            "Zimbabwe"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "africa",
+        "difficulty": "medium",
+        "question": "Which country is home to Victoria Falls?",
+        "answers": [
+            "Ghana",
+            "Zimbabwe and Zambia",
+            "Kenya",
+            "Morocco"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "africa",
+        "difficulty": "hard",
+        "question": "Which African lake is the largest by surface area?",
+        "answers": [
+            "Lake Chad",
+            "Lake Victoria",
+            "Lake Tanganyika",
+            "Lake Malawi"
+        ],
+        "correct": 1
+    },
+
+    {
+        "category": "nigeria",
+        "difficulty": "easy",
+        "question": "What is the capital of Nigeria?",
+        "answers": [
+            "Lagos",
+            "Kano",
+            "Abuja",
+            "Ibadan"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "nigeria",
+        "difficulty": "easy",
+        "question": "Which Nigerian food is traditionally made from cassava?",
+        "answers": [
+            "Jollof rice",
+            "Garri",
+            "Suya",
+            "Fried rice"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "nigeria",
+        "difficulty": "easy",
+        "question": "What is the currency of Nigeria?",
+        "answers": [
+            "Cedi",
+            "Naira",
+            "Rand",
+            "Dalasi"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "nigeria",
+        "difficulty": "easy",
+        "question": "Which city is widely regarded as Nigeria's commercial hub?",
+        "answers": [
+            "Abuja",
+            "Lagos",
+            "Jos",
+            "Enugu"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "nigeria",
+        "difficulty": "medium",
+        "question": "Which Nigerian city is known as the ancient city of Ibadan?",
+        "answers": [
+            "The largest city by landmass in Nigeria",
+            "A coastal fishing town",
+            "Nigeria's federal capital",
+            "A city in northern Nigeria"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "nigeria",
+        "difficulty": "medium",
+        "question": "Which river is one of the major rivers associated with southeastern Nigeria?",
+        "answers": [
+            "River Niger",
+            "River Thames",
+            "River Nile",
+            "River Congo"
+        ],
+        "correct": 0
+    },
+
+    {
+        "category": "entertainment",
+        "difficulty": "easy",
+        "question": "Which Nigerian artist released 'Ye'?",
+        "answers": [
+            "Wizkid",
+            "Burna Boy",
+            "Davido",
+            "Olamide"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "entertainment",
+        "difficulty": "easy",
+        "question": "Which instrument is commonly associated with a drummer?",
+        "answers": [
+            "Drums",
+            "Flute",
+            "Violin",
+            "Harp"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "entertainment",
+        "difficulty": "medium",
+        "question": "What does Afrobeats primarily refer to?",
+        "answers": [
+            "A single African music genre",
+            "A broad modern African popular music movement",
+            "A type of classical music",
+            "A European dance style"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "entertainment",
+        "difficulty": "medium",
+        "question": "Which platform is primarily known for music streaming?",
+        "answers": [
+            "Spotify",
+            "Google Maps",
+            "LinkedIn",
+            "Notion"
+        ],
+        "correct": 0
+    },
+
+    {
+        "category": "sports",
+        "difficulty": "easy",
+        "question": "Which sport uses a racket and shuttlecock?",
+        "answers": [
+            "Tennis",
+            "Badminton",
+            "Squash",
+            "Cricket"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "sports",
+        "difficulty": "easy",
+        "question": "How many players are on a football team on the field?",
+        "answers": [
+            "9",
+            "10",
+            "11",
+            "12"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "sports",
+        "difficulty": "easy",
+        "question": "How many points is a basketball free throw worth?",
+        "answers": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "sports",
+        "difficulty": "medium",
+        "question": "How often are the Summer Olympic Games normally held?",
+        "answers": [
+            "Every year",
+            "Every two years",
+            "Every four years",
+            "Every five years"
+        ],
+        "correct": 2
+    },
+
+    {
+        "category": "science",
+        "difficulty": "easy",
+        "question": "What gas do humans need to breathe?",
+        "answers": [
+            "Carbon dioxide",
+            "Oxygen",
+            "Hydrogen",
+            "Nitrogen"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "science",
+        "difficulty": "easy",
+        "question": "Which planet is closest to the Sun?",
+        "answers": [
+            "Venus",
+            "Earth",
+            "Mercury",
+            "Mars"
+        ],
+        "correct": 2
+    },
+    {
+        "category": "science",
+        "difficulty": "easy",
+        "question": "Which force keeps objects pulled toward Earth?",
+        "answers": [
+            "Magnetism",
+            "Gravity",
+            "Friction",
+            "Electricity"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "science",
+        "difficulty": "medium",
+        "question": "What is the basic unit of life?",
+        "answers": [
+            "Atom",
+            "Cell",
+            "Organ",
+            "Tissue"
+        ],
+        "correct": 1
+    },
+    {
+        "category": "science",
+        "difficulty": "medium",
+        "question": "Which part of a plant mainly absorbs water from the soil?",
+        "answers": [
+            "Flower",
+            "Leaf",
+            "Root",
+            "Fruit"
+        ],
+        "correct": 2
+    },
+
+    {
+        "category": "food",
+        "difficulty": "easy",
+        "question": "Which ingredient is central to traditional jollof rice?",
+        "answers": [
+            "Rice",
+            "Yam",
+            "Cassava",
+            "Plantain"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "food",
+        "difficulty": "easy",
+        "question": "Which fruit is commonly known for having a yellow peel?",
+        "answers": [
+            "Banana",
+            "Watermelon",
+            "Pawpaw",
+            "Orange"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "food",
+        "difficulty": "easy",
+        "question": "What is garri primarily made from?",
+        "answers": [
+            "Cassava",
+            "Wheat",
+            "Rice",
+            "Maize"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "food",
+        "difficulty": "medium",
+        "question": "Which spice is commonly associated with the distinctive yellow colour of some curries?",
+        "answers": [
+            "Turmeric",
+            "Mint",
+            "Basil",
+            "Rosemary"
+        ],
+        "correct": 0
+    },
+    {
+        "category": "food",
+        "difficulty": "medium",
+        "question": "Which grain is traditionally used to make pap in Nigeria?",
+        "answers": [
+            "Maize",
+            "Barley",
+            "Oats",
+            "Rice"
+        ],
+        "correct": 0
+    }
+]
