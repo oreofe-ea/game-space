@@ -160,13 +160,10 @@ function createQuestionSet(settings = {}) {
     const difficulty =
         settings.difficulty || "mixed";
 
-
     let count =
         Number(settings.questionCount) ||
         DEFAULT_QUESTIONS_PER_GAME;
 
-
-    // Keep question count within allowed limits
     count = Math.max(
         MIN_QUESTIONS,
         Math.min(
@@ -175,22 +172,16 @@ function createQuestionSet(settings = {}) {
         )
     );
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | START WITH ALL QUESTIONS
-    |---------------------------------------------------------------------------
-    */
+    // ------------------------------------------
+    // START WITH FULL QUESTION BANK
+    // ------------------------------------------
 
     let categoryPool =
         [...questionBank];
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | CATEGORY FILTER
-    |---------------------------------------------------------------------------
-    */
+    // ------------------------------------------
+    // CATEGORY FILTER
+    // ------------------------------------------
 
     if (category !== "random") {
 
@@ -201,55 +192,26 @@ function createQuestionSet(settings = {}) {
                     category
             );
 
-
-        /*
-        | If the category exists, use it.
-        | If it doesn't, fall back to the
-        | full question bank.
-        */
-
         if (
             matchingCategory.length > 0
         ) {
-
             categoryPool =
                 matchingCategory;
-
         }
-
     }
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | DIFFICULTY FILTER
-    |---------------------------------------------------------------------------
-    */
+    // ------------------------------------------
+    // DIFFICULTY
+    // ------------------------------------------
 
     if (difficulty === "mixed") {
 
-        /*
-        | Mixed difficulty:
-        | simply shuffle the category pool.
-        */
-
         categoryPool =
-            shuffle(
-                categoryPool
-            );
+            shuffle(categoryPool);
 
     } else {
 
-        /*
-        |-----------------------------------------------------------------------
-        | PREFERRED DIFFICULTY
-        |-----------------------------------------------------------------------
-        |
-        | First, get questions matching the
-        | requested difficulty.
-        |
-        */
-
+        // Questions matching requested difficulty
         const preferredQuestions =
             categoryPool.filter(
                 question =>
@@ -257,19 +219,7 @@ function createQuestionSet(settings = {}) {
                     difficulty
             );
 
-
-        /*
-        |-----------------------------------------------------------------------
-        | OTHER DIFFICULTIES
-        |-----------------------------------------------------------------------
-        |
-        | If there aren't enough questions at
-        | the requested difficulty, we fill the
-        | remaining slots with other questions
-        | from the same category.
-        |
-        */
-
+        // Questions of other difficulties
         const otherQuestions =
             categoryPool.filter(
                 question =>
@@ -277,32 +227,31 @@ function createQuestionSet(settings = {}) {
                     difficulty
             );
 
-
         const shuffledPreferred =
             shuffle(
                 preferredQuestions
             );
-
 
         const shuffledOthers =
             shuffle(
                 otherQuestions
             );
 
+        /*
+         * Put preferred difficulty first.
+         * If there are not enough, fill the
+         * remaining spaces with other difficulties.
+         */
 
         categoryPool = [
             ...shuffledPreferred,
             ...shuffledOthers
         ];
-
     }
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | MAKE SURE WE HAVE QUESTIONS
-    |---------------------------------------------------------------------------
-    */
+    // ------------------------------------------
+    // NO QUESTIONS
+    // ------------------------------------------
 
     if (
         categoryPool.length === 0
@@ -313,15 +262,11 @@ function createQuestionSet(settings = {}) {
         );
 
         return [];
-
     }
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | SELECT QUESTIONS
-    |---------------------------------------------------------------------------
-    */
+    // ------------------------------------------
+    // SELECT QUESTIONS
+    // ------------------------------------------
 
     const selectedQuestions =
         categoryPool.slice(
@@ -332,27 +277,13 @@ function createQuestionSet(settings = {}) {
             )
         );
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | LOG GAME GENERATION
-    |---------------------------------------------------------------------------
-    */
-
     console.log(
         `Generated ${selectedQuestions.length} questions | Category: ${category} | Difficulty: ${difficulty}`
     );
 
-
-    /*
-    |---------------------------------------------------------------------------
-    | RETURN CLEAN QUESTION OBJECTS
-    |---------------------------------------------------------------------------
-    |
-    | We deliberately do NOT send the correct
-    | answer to the client.
-    |
-    */
+    // ------------------------------------------
+    // RETURN QUESTION OBJECTS
+    // ------------------------------------------
 
     return selectedQuestions.map(
         question => ({
@@ -368,79 +299,6 @@ function createQuestionSet(settings = {}) {
 
         })
     );
-
-}
-
-    let available = [...questionBank];
-
-    // ------------------------------------------
-    // CATEGORY
-    // ------------------------------------------
-
-    if (category !== "random") {
-        const categoryQuestions =
-            available.filter(
-                question =>
-                    question.category ===
-                    category
-            );
-
-        if (
-            categoryQuestions.length > 0
-        ) {
-            available =
-                categoryQuestions;
-        }
-    }
-
-    // ------------------------------------------
-    // DIFFICULTY
-    // ------------------------------------------
-
-    if (difficulty !== "mixed") {
-        const difficultyQuestions =
-            available.filter(
-                question =>
-                    question.difficulty ===
-                    difficulty
-            );
-
-        if (
-            difficultyQuestions.length > 0
-        ) {
-            available =
-                difficultyQuestions;
-        }
-    }
-
-    if (available.length === 0) {
-        return [];
-    }
-
-    if (available.length < count) {
-        console.log(
-            `Only ${available.length} questions available for selected settings.`
-        );
-    }
-
-    return shuffle(available)
-        .slice(
-            0,
-            Math.min(
-                count,
-                available.length
-            )
-        )
-        .map(question => ({
-            question:
-                question.question,
-
-            answers:
-                question.answers,
-
-            correct:
-                question.correct
-        }));
 }
 
 // ======================================================
@@ -553,9 +411,12 @@ function sendQuestion(roomCode) {
     }
 
     room.questionTimer =
-        setTimeout(() => {
-            nextQuestion(roomCode);
-        }, QUESTION_TIME * 1000);
+        setTimeout(
+            () => {
+                nextQuestion(roomCode);
+            },
+            QUESTION_TIME * 1000
+        );
 
     io.to(roomCode).emit(
         "newQuestion",
@@ -590,7 +451,9 @@ function nextQuestion(roomCode) {
         return;
     }
 
-    if (room.status !== "playing") {
+    if (
+        room.status !== "playing"
+    ) {
         return;
     }
 
@@ -615,26 +478,30 @@ function nextQuestion(roomCode) {
     }
 
     room.nextQuestionTimer =
-        setTimeout(() => {
-            const currentRoom =
-                rooms[roomCode];
+        setTimeout(
+            () => {
 
-            if (!currentRoom) {
-                return;
-            }
+                const currentRoom =
+                    rooms[roomCode];
 
-            if (
-                currentRoom.status !==
-                "playing"
-            ) {
-                return;
-            }
+                if (!currentRoom) {
+                    return;
+                }
 
-            currentRoom.nextQuestionTimer =
-                null;
+                if (
+                    currentRoom.status !==
+                    "playing"
+                ) {
+                    return;
+                }
 
-            sendQuestion(roomCode);
-        }, NEXT_QUESTION_DELAY);
+                currentRoom.nextQuestionTimer =
+                    null;
+
+                sendQuestion(roomCode);
+            },
+            NEXT_QUESTION_DELAY
+        );
 }
 
 // ======================================================
@@ -648,7 +515,9 @@ function finishGame(roomCode) {
         return;
     }
 
-    if (room.status === "finished") {
+    if (
+        room.status === "finished"
+    ) {
         return;
     }
 
@@ -689,6 +558,7 @@ function finishGame(roomCode) {
 // ======================================================
 
 function resetRoomForRematch(room) {
+
     clearRoomTimers(room);
 
     room.status = "lobby";
@@ -703,11 +573,16 @@ function resetRoomForRematch(room) {
 
     room.readyPlayers = new Set();
 
-    room.players.forEach(player => {
-        player.score = 0;
-        player.connected =
-            Boolean(player.connected);
-    });
+    room.players.forEach(
+        player => {
+            player.score = 0;
+
+            player.connected =
+                Boolean(
+                    player.connected
+                );
+        }
+    );
 }
 
 // ======================================================
@@ -718,7 +593,9 @@ function removePlayer(
     roomCode,
     playerId
 ) {
-    const room = rooms[roomCode];
+
+    const room =
+        rooms[roomCode];
 
     if (!room) {
         return;
@@ -753,6 +630,7 @@ function removePlayer(
         room.hostPlayerId ===
         playerId
     ) {
+
         const nextHost =
             room.players.find(
                 currentPlayer =>
@@ -760,6 +638,7 @@ function removePlayer(
             );
 
         if (nextHost) {
+
             room.hostPlayerId =
                 nextHost.playerId;
 
@@ -783,6 +662,7 @@ function removePlayer(
     if (
         room.players.length === 0
     ) {
+
         clearRoomTimers(room);
 
         delete rooms[roomCode];
@@ -827,6 +707,7 @@ io.on(
                     !playerId ||
                     !playerName
                 ) {
+
                     socket.emit(
                         "errorMessage",
                         "Player information is missing."
@@ -840,7 +721,7 @@ io.on(
 
                 rooms[roomCode] = {
 
-                    // Creator is ALWAYS host.
+                    // Creator is ALWAYS host
                     hostPlayerId:
                         playerId,
 
@@ -897,7 +778,9 @@ io.on(
                         null
                 };
 
-                socket.join(roomCode);
+                socket.join(
+                    roomCode
+                );
 
                 socket.roomCode =
                     roomCode;
@@ -953,6 +836,7 @@ io.on(
                     rooms[roomCode];
 
                 if (!room) {
+
                     socket.emit(
                         "errorMessage",
                         "Room not found."
@@ -965,6 +849,7 @@ io.on(
                     room.status !==
                     "lobby"
                 ) {
+
                     socket.emit(
                         "errorMessage",
                         "This game has already started."
@@ -977,6 +862,7 @@ io.on(
                     !playerId ||
                     !playerName
                 ) {
+
                     socket.emit(
                         "errorMessage",
                         "Player information is missing."
@@ -1091,6 +977,7 @@ io.on(
                     rooms[roomCode];
 
                 if (!room) {
+
                     socket.emit(
                         "errorMessage",
                         "Room no longer exists."
@@ -1106,6 +993,7 @@ io.on(
                     );
 
                 if (!player) {
+
                     socket.emit(
                         "errorMessage",
                         "Player not found in this room."
@@ -1216,7 +1104,6 @@ io.on(
                                             remaining
                                     }
                                 );
-
                             }
                         }
                     }
@@ -1246,6 +1133,7 @@ io.on(
                     rooms[roomCode];
 
                 if (!room) {
+
                     socket.emit(
                         "errorMessage",
                         "Room not found."
@@ -1262,6 +1150,7 @@ io.on(
                     room.hostPlayerId !==
                     playerId
                 ) {
+
                     socket.emit(
                         "errorMessage",
                         "Only the host can start the game."
@@ -1278,7 +1167,7 @@ io.on(
                 }
 
                 // ------------------------------------------
-                // CURRENTLY QUIZ
+                // QUIZ
                 // ------------------------------------------
 
                 if (
@@ -1306,8 +1195,6 @@ io.on(
 
                 } else {
 
-                    // The shared room engine is ready
-                    // for the next game modules.
                     socket.emit(
                         "errorMessage",
                         "This game is not available yet."
@@ -1734,6 +1621,7 @@ io.on(
                     );
 
                 if (allAnswered) {
+
                     nextQuestion(
                         roomCode
                     );
@@ -1819,6 +1707,7 @@ io.on(
                     rooms[roomCode];
 
                 if (!room) {
+
                     socket.emit(
                         "errorMessage",
                         "Room not found."
@@ -1831,6 +1720,7 @@ io.on(
                     room.hostPlayerId !==
                     playerId
                 ) {
+
                     socket.emit(
                         "errorMessage",
                         "Only the host can start a rematch."
@@ -1978,8 +1868,10 @@ io.on(
 server.listen(
     PORT,
     () => {
+
         console.log(
             `Game Space server running on port ${PORT}`
         );
+
     }
 );
