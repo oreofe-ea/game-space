@@ -12,7 +12,6 @@ function getPlayerId() {
             "playerId"
         );
 
-
     if (!playerId) {
 
         playerId =
@@ -23,7 +22,6 @@ function getPlayerId() {
             playerId
         );
     }
-
 
     return playerId;
 }
@@ -50,7 +48,6 @@ if (!playerName) {
             "Enter your name:"
         );
 
-
     if (playerName) {
 
         playerName =
@@ -60,7 +57,6 @@ if (!playerName) {
             "playerName",
             playerName
         );
-
     }
 }
 
@@ -87,9 +83,11 @@ questionButtons.forEach(
 
                 questionButtons.forEach(
                     (item) => {
+
                         item.classList.remove(
                             "active"
                         );
+
                     }
                 );
 
@@ -147,6 +145,12 @@ function createRoom() {
 
 
     localStorage.setItem(
+        "playerName",
+        playerName
+    );
+
+
+    localStorage.setItem(
         "gameType",
         "quiz"
     );
@@ -181,7 +185,20 @@ function createRoom() {
                 playerName,
 
             gameType:
-                "quiz"
+                "quiz",
+
+            settings: {
+
+                category:
+                    category,
+
+                difficulty:
+                    difficulty,
+
+                questionCount:
+                    questionCount
+
+            }
 
         }
     );
@@ -233,7 +250,9 @@ socket.on(
     "errorMessage",
     (message) => {
 
-        alert(message);
+        alert(
+            message
+        );
 
     }
 );
