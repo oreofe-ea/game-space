@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Game Setup | Game Space
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+<main class="home">
+
+
+    <!-- NAVIGATION -->
+
+    <nav class="game-header">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+            GAME SPACE
+        </a>
+
+
+        <div class="nav-links">
+
+            <a href="games.html">
+                Games
+            </a>
+
+            <a href="index.html">
+                Home
+            </a>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- SETUP -->
+
+    <section class="panel setup-panel">
+
+        <p class="eyebrow">
+            GAME SETUP
+        </p>
+
+
+        <div class="setup-icon">
+            🎯
+        </div>
+
+
+        <h1>
+            Quiz Arena
+        </h1>
+
+
+        <p>
+            Set up your quiz before
+            inviting everyone in.
+        </p>
+
+
+
+        <!-- CATEGORY -->
+
+        <div class="form-group">
+
+            <label for="category">
+                Category
+            </label>
+
+
+            <select id="category">
+
+                <option value="random">
+                    Random Mix
+                </option>
+
+                <option value="general">
+                    General Knowledge
+                </option>
+
+                <option value="africa">
+                    African Culture
+                </option>
+
+                <option value="nigeria">
+                    Nigeria
+                </option>
+
+                <option value="entertainment">
+                    Entertainment
+                </option>
+
+                <option value="sports">
+                    Sports
+                </option>
+
+                <option value="science">
+                    Science
+                </option>
+
+                <option value="food">
+                    Food
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+        <!-- DIFFICULTY -->
+
+        <div class="form-group">
+
+            <label for="difficulty">
+                Difficulty
+            </label>
+
+
+            <select id="difficulty">
+
+                <option value="mixed">
+                    Mixed
+                </option>
+
+                <option value="easy">
+                    Easy
+                </option>
+
+                <option value="medium">
+                    Medium
+                </option>
+
+                <option value="hard">
+                    Hard
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+        <!-- NUMBER OF QUESTIONS -->
+
+        <div class="form-group">
+
+            <label>
+                Number of questions
+            </label>
+
+
+            <div class="question-options">
+
+                <button
+                    type="button"
+                    class="question-option"
+                    data-count="5"
+                >
+                    5
+                </button>
+
+
+                <button
+                    type="button"
+                    class="question-option active"
+                    data-count="10"
+                >
+                    10
+                </button>
+
+
+                <button
+                    type="button"
+                    class="question-option"
+                    data-count="15"
+                >
+                    15
+                </button>
+
+
+                <button
+                    type="button"
+                    class="question-option"
+                    data-count="20"
+                >
+                    20
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- CREATE -->
+
+        <button
+            id="createRoomButton"
+            onclick="createRoom()"
+        >
+            Create Room
+        </button>
+
+
+        <a
+            href="games.html"
+            class="back-link"
+        >
+            ← Back to Games
+        </a>
+
+    </section>
+
+
+
+    <footer>
+        Game Space · Play with your people
+    </footer>
+
+
+</main>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="setup.js"></script>
+
+</body>
+</html>
