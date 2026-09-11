@@ -1,348 +1,559 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <title>Game Room | Play Together</title>
 
-    <title>
-        Games | Game Space
-    </title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
 
+        header {
+            padding: 20px 30px;
+            background: #111827;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #263244;
+        }
+
+        header h1 {
+            font-size: 24px;
+        }
+
+        .room-info {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 25px;
+        }
+
+        .welcome {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome h2 {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .welcome p {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .host-message {
+            background: #172554;
+            border: 1px solid #2563eb;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .host-message.hidden {
+            display: none;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 25px;
+            transition: 0.2s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+        }
+
+        .game-icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .game-card h3 {
+            font-size: 21px;
+            margin-bottom: 10px;
+        }
+
+        .game-card p {
+            color: #94a3b8;
+            line-height: 1.5;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        .waiting {
+            text-align: center;
+            margin-top: 30px;
+            color: #94a3b8;
+        }
+
+        #statusMessage {
+            margin-top: 20px;
+            text-align: center;
+            color: #60a5fa;
+        }
+
+        @media (max-width: 600px) {
+            .welcome h2 {
+                font-size: 27px;
+            }
+
+            header {
+                padding: 15px 20px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
 </head>
-
 
 <body>
 
-<main class="home">
+<header>
+    <h1>🎮 Game Room</h1>
 
+    <div class="room-info">
+        Room: <strong id="roomCode">---</strong>
+    </div>
+</header>
 
-    <!-- NAVIGATION -->
+<div class="container">
 
-    <nav class="game-header">
+    <div class="welcome">
+        <h2>Choose a Game</h2>
+        <p>Pick a game and challenge everyone in the room.</p>
+    </div>
 
-        <a
-            href="index.html"
-            class="logo"
-        >
-            GAME SPACE
-        </a>
+    <!-- Only visible to host -->
+    <div id="hostMessage" class="host-message hidden">
+        👑 <strong>You are the host.</strong>
+        Choose a game to start the round.
+    </div>
 
-
-        <div class="nav-links">
-
-            <a href="games.html">
-                Games
-            </a>
-
-            <a href="index.html">
-                Home
-            </a>
-
-        </div>
-
-    </nav>
-
-
-
-    <!-- PAGE INTRO -->
-
-    <section class="hero games-hero">
-
-        <p class="eyebrow">
-            GAME LIBRARY
-        </p>
-
-        <h1>
-            Pick your game.
-        </h1>
-
-        <p class="intro">
-            Gather your people and choose
-            something worth competing over.
-        </p>
-
-    </section>
-
-
-
-    <!-- GAMES -->
-
-    <section class="games-grid">
-
+    <div class="games-grid">
 
         <!-- QUIZ -->
+        <div class="game-card">
+            <div class="game-icon">🧠</div>
 
-        <article class="game-card featured-game">
+            <h3>Quick Quiz</h3>
 
-            <div class="game-icon">
-                🎯
+            <p>
+                A fast-paced multiplayer quiz where players
+                compete to answer questions correctly.
+            </p>
+
+            <div class="game-info">
+                <span>👥 2–20 players</span>
+                <span>⏱️ 5–10 min</span>
             </div>
 
-
-            <div class="game-card-content">
-
-                <p class="game-card-label">
-                    LIVE NOW
-                </p>
-
-                <h2>
-                    Quiz Arena
-                </h2>
-
-                <p>
-                    Fast-paced trivia where
-                    speed and knowledge matter.
-                </p>
-
-
-                <div class="game-meta">
-
-                    <span>
-                        👥 2–20 players
-                    </span>
-
-                    <span>
-                        ⏱ Timed
-                    </span>
-
-                </div>
-
-
-                <a
-                    href="setup.html?game=quiz"
-                    class="button-link"
-                >
-                    Play Quiz
-                </a>
-
-            </div>
-
-        </article>
-
-
-
-        <!-- PUZZLE -->
-
-        <article class="game-card">
-
-            <div class="game-icon">
-                🧩
-            </div>
-
-
-            <div class="game-card-content">
-
-                <p class="game-card-label">
-                    COMING SOON
-                </p>
-
-                <h2>
-                    Puzzle Rush
-                </h2>
-
-                <p>
-                    Solve challenges, think quickly
-                    and beat the clock.
-                </p>
-
-
-                <div class="game-meta">
-
-                    <span>
-                        👥 2–10+ players
-                    </span>
-
-                    <span>
-                        🧠 Brain game
-                    </span>
-
-                </div>
-
-
-                <button
-                    class="secondary"
-                    disabled
-                >
-                    Coming Soon
-                </button>
-
-            </div>
-
-        </article>
-
+            <button
+                class="game-button"
+                data-game="quiz"
+                onclick="selectGame('quiz')">
+                Play Quiz
+            </button>
+        </div>
 
 
         <!-- BINGO -->
+        <div class="game-card">
+            <div class="game-icon">🎯</div>
 
-        <article class="game-card">
+            <h3>Multiplayer Bingo</h3>
 
-            <div class="game-icon">
-                🎱
+            <p>
+                Get your numbers, watch the board and be
+                the first player to complete your pattern.
+            </p>
+
+            <div class="game-info">
+                <span>👥 2–20 players</span>
+                <span>⏱️ 5–15 min</span>
             </div>
 
-
-            <div class="game-card-content">
-
-                <p class="game-card-label">
-                    COMING SOON
-                </p>
-
-                <h2>
-                    Bingo
-                </h2>
-
-                <p>
-                    A multiplayer twist on the
-                    classic everyone knows.
-                </p>
+            <button
+                class="game-button"
+                data-game="bingo"
+                onclick="selectGame('bingo')">
+                Play Bingo
+            </button>
+        </div>
 
 
-                <div class="game-meta">
+        <!-- PUZZLE -->
+        <div class="game-card">
+            <div class="game-icon">🧩</div>
 
-                    <span>
-                        👥 2–50 players
-                    </span>
+            <h3>Brain Puzzle</h3>
 
-                    <span>
-                        🎲 Random
-                    </span>
+            <p>
+                Test your logic, memory and problem-solving
+                skills against the other players.
+            </p>
 
-                </div>
-
-
-                <button
-                    class="secondary"
-                    disabled
-                >
-                    Coming Soon
-                </button>
-
+            <div class="game-info">
+                <span>👥 2–10 players</span>
+                <span>⏱️ 5–10 min</span>
             </div>
 
-        </article>
+            <button
+                class="game-button"
+                data-game="puzzle"
+                onclick="selectGame('puzzle')">
+                Play Puzzle
+            </button>
+        </div>
 
 
+        <!-- WORD GAME -->
+        <div class="game-card">
+            <div class="game-icon">🔤</div>
 
-        <!-- MEMORY -->
+            <h3>Word Battle</h3>
 
-        <article class="game-card">
+            <p>
+                Think quickly, find the right words and
+                outscore everyone else.
+            </p>
 
-            <div class="game-icon">
-                🧠
+            <div class="game-info">
+                <span>👥 2–10 players</span>
+                <span>⏱️ 5–10 min</span>
             </div>
 
+            <button
+                class="game-button"
+                data-game="word"
+                onclick="selectGame('word')">
+                Play Word Battle
+            </button>
+        </div>
 
-            <div class="game-card-content">
+    </div>
 
-                <p class="game-card-label">
-                    COMING SOON
-                </p>
+    <div id="statusMessage"></div>
 
-                <h2>
-                    Memory Match
-                </h2>
+    <div class="waiting">
+        Other players will automatically join the game selected by the host.
+    </div>
 
-                <p>
-                    Remember the cards, find the
-                    pairs and outscore everyone.
-                </p>
-
-
-                <div class="game-meta">
-
-                    <span>
-                        👥 2–10 players
-                    </span>
-
-                    <span>
-                        🧠 Memory
-                    </span>
-
-                </div>
+</div>
 
 
-                <button
-                    class="secondary"
-                    disabled
-                >
-                    Coming Soon
-                </button>
+<!-- Firebase -->
+<script type="module">
 
-            </div>
+    import { initializeApp }
+        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-        </article>
-
-
-
-        <!-- WORD SCRAMBLE -->
-
-        <article class="game-card">
-
-            <div class="game-icon">
-                🔤
-            </div>
+    import {
+        getDatabase,
+        ref,
+        get,
+        set,
+        onValue
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 
-            <div class="game-card-content">
+    // =====================================================
+    // FIREBASE CONFIG
+    // =====================================================
 
-                <p class="game-card-label">
-                    COMING SOON
-                </p>
-
-                <h2>
-                    Word Scramble
-                </h2>
-
-                <p>
-                    Unscramble the word before
-                    everyone else.
-                </p>
-
-
-                <div class="game-meta">
-
-                    <span>
-                        👥 2–20 players
-                    </span>
-
-                    <span>
-                        🔤 Word game
-                    </span>
-
-                </div>
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
 
-                <button
-                    class="secondary"
-                    disabled
-                >
-                    Coming Soon
-                </button>
+    // =====================================================
+    // INITIALIZE FIREBASE
+    // =====================================================
 
-            </div>
+    const app = initializeApp(firebaseConfig);
 
-        </article>
+    const database = getDatabase(app);
 
 
-    </section>
+    // =====================================================
+    // ROOM INFORMATION
+    // =====================================================
+
+    const roomCode =
+        localStorage.getItem("roomCode");
+
+    const playerId =
+        localStorage.getItem("playerId");
 
 
-    <footer>
-        Game Space · Play with your people
-    </footer>
+    const playerName =
+        localStorage.getItem("playerName");
 
 
-</main>
+    if (!roomCode || !playerId) {
+
+        window.location.href = "index.html";
+
+    }
+
+
+    document.getElementById("roomCode").textContent =
+        roomCode;
+
+
+    // =====================================================
+    // CHECK HOST
+    // =====================================================
+
+    const roomRef =
+        ref(database, `rooms/${roomCode}`);
+
+
+    onValue(roomRef, (snapshot) => {
+
+        const room = snapshot.val();
+
+        if (!room) {
+
+            alert("This room no longer exists.");
+
+            window.location.href = "index.html";
+
+            return;
+        }
+
+
+        // -----------------------------------------------
+        // CHECK IF CURRENT PLAYER IS HOST
+        // -----------------------------------------------
+
+        const isHost =
+            room.host === playerId;
+
+
+        const hostMessage =
+            document.getElementById("hostMessage");
+
+
+        if (isHost) {
+
+            hostMessage.classList.remove("hidden");
+
+            enableGameButtons();
+
+        } else {
+
+            hostMessage.classList.add("hidden");
+
+            disableGameButtons();
+
+        }
+
+
+        // -----------------------------------------------
+        // WATCH FOR GAME SELECTION
+        // -----------------------------------------------
+
+        if (room.selectedGame) {
+
+            document.getElementById("statusMessage")
+                .textContent =
+                `🎮 ${formatGameName(room.selectedGame)} has been selected.`;
+
+        }
+
+    });
+
+
+    // =====================================================
+    // SELECT GAME
+    // =====================================================
+
+    window.selectGame = async function(game) {
+
+        const snapshot =
+            await get(roomRef);
+
+        const room =
+            snapshot.val();
+
+
+        if (!room) {
+
+            alert("Room not found.");
+
+            return;
+        }
+
+
+        // Only host can start game
+
+        if (room.host !== playerId) {
+
+            alert("Only the host can select a game.");
+
+            return;
+        }
+
+
+        // Save selected game
+
+        await set(
+            ref(database, `rooms/${roomCode}/selectedGame`),
+            game
+        );
+
+
+        // Save game status
+
+        await set(
+            ref(database, `rooms/${roomCode}/gameStatus`),
+            "starting"
+        );
+
+
+        document.getElementById("statusMessage")
+            .textContent =
+            `Starting ${formatGameName(game)}...`;
+
+
+        // -----------------------------------------------
+        // TEMPORARY REDIRECT
+        // -----------------------------------------------
+
+        setTimeout(() => {
+
+            window.location.href =
+                `${game}.html`;
+
+        }, 1000);
+
+    };
+
+
+    // =====================================================
+    // ENABLE BUTTONS
+    // =====================================================
+
+    function enableGameButtons() {
+
+        document
+            .querySelectorAll(".game-button")
+            .forEach(button => {
+
+                button.disabled = false;
+
+            });
+
+    }
+
+
+    // =====================================================
+    // DISABLE BUTTONS
+    // =====================================================
+
+    function disableGameButtons() {
+
+        document
+            .querySelectorAll(".game-button")
+            .forEach(button => {
+
+                button.disabled = true;
+
+            });
+
+    }
+
+
+    // =====================================================
+    // GAME NAME
+    // =====================================================
+
+    function formatGameName(game) {
+
+        const names = {
+
+            quiz: "Quick Quiz",
+
+            bingo: "Multiplayer Bingo",
+
+            puzzle: "Brain Puzzle",
+
+            word: "Word Battle"
+
+        };
+
+
+        return names[game] || game;
+
+    }
+
+</script>
 
 </body>
 </html>
