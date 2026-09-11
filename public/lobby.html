@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,91 +8,187 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Game Lobby | Playroom</title>
+    <title>Game Lobby | Game Space</title>
 
     <link
         rel="stylesheet"
-        href="style.css"
+        href="style.css?v=5"
     >
-
 </head>
-
 
 <body>
 
+    <main class="page-shell">
 
-    <main class="home">
+        <!-- HEADER -->
+        <header class="site-header">
+
+            <a
+                href="/"
+                class="brand"
+            >
+                GAME SPACE
+            </a>
+
+            <nav class="main-nav">
+                <a href="/">Home</a>
+                <a href="/games.html">Games</a>
+            </nav>
+
+        </header>
 
 
-        <div class="logo">
-            PLAYROOM
+        <!-- LOBBY -->
+        <section class="lobby-layout">
+
+            <div class="panel lobby-main">
+
+                <div class="lobby-icon">
+                    🎮
+                </div>
+
+                <p class="eyebrow">
+                    GAME LOBBY
+                </p>
+
+                <h1>
+                    You're in.
+                </h1>
+
+                <p class="lobby-description">
+                    Share the room code with your friends and
+                    wait for everyone to join.
+                </p>
+
+
+                <!-- ROOM CODE -->
+                <div class="room-code-card">
+
+                    <span class="room-code-label">
+                        ROOM CODE
+                    </span>
+
+                    <strong id="roomCode">
+                        ------
+                    </strong>
+
+                    <button
+                        id="copyRoomCode"
+                        class="secondary-button"
+                    >
+                        Copy code
+                    </button>
+
+                </div>
+
+
+                <!-- HOST CONTROLS -->
+                <div
+                    id="hostControls"
+                    class="host-controls hidden"
+                >
+
+                    <button
+                        id="startGameButton"
+                        class="primary-button"
+                    >
+                        Start game
+                    </button>
+
+                    <p id="startMessage">
+                        Everyone is ready?
+                    </p>
+
+                </div>
+
+
+                <!-- WAITING MESSAGE -->
+                <div
+                    id="waitingMessage"
+                    class="waiting-box"
+                >
+
+                    <span class="waiting-dot"></span>
+
+                    <span>
+                        Waiting for the host to start the game...
+                    </span>
+
+                </div>
+
+
+                <!-- ERROR -->
+                <p
+                    id="lobbyError"
+                    class="lobby-error hidden"
+                ></p>
+
+            </div>
+
+
+            <!-- PLAYERS -->
+            <aside class="panel players-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <p class="eyebrow">
+                            PLAYERS
+                        </p>
+
+                        <h2>
+                            In the room
+                        </h2>
+                    </div>
+
+                    <span
+                        id="playerCount"
+                        class="player-count"
+                    >
+                        0
+                    </span>
+
+                </div>
+
+
+                <div id="playersList">
+
+                    <div class="empty-players">
+                        Waiting for players...
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="bottom-navigation">
+
+            <button
+                class="text-button"
+                onclick="leaveLobby()"
+            >
+                ← Leave room
+            </button>
+
+            <a
+                href="/games.html"
+                class="text-button"
+            >
+                Browse games →
+            </a>
+
         </div>
-
-
-        <section class="panel">
-
-            <p class="eyebrow">
-                GAME ROOM
-            </p>
-
-
-            <h1 id="roomCodeDisplay">
-                ------
-            </h1>
-
-
-            <p>
-                Share this code with everyone
-                you want to play with.
-            </p>
-
-
-            <button
-                class="secondary"
-                onclick="copyRoomCode()"
-            >
-                Copy Room Code
-            </button>
-
-
-        </section>
-
-
-        <section class="panel">
-
-            <h2>
-                Players
-            </h2>
-
-
-            <div id="players"></div>
-
-
-            <button
-                id="startButton"
-                onclick="startGame()"
-            >
-                Start Game
-            </button>
-
-
-            <p id="waiting">
-                Waiting for the host to
-                start the game...
-            </p>
-
-
-        </section>
-
 
     </main>
 
 
     <script src="/socket.io/socket.io.js"></script>
 
-    <script src="lobby.js"></script>
-
+    <script src="lobby.js?v=5"></script>
 
 </body>
-
 </html>
