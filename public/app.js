@@ -2,14 +2,15 @@ const socket = io();
 
 
 // =========================
-// GET OR CREATE PLAYER ID
+// PLAYER ID
 // =========================
 
 function getPlayerId() {
 
     let playerId =
-        localStorage.getItem("playerId");
-
+        localStorage.getItem(
+            "playerId"
+        );
 
     if (!playerId) {
 
@@ -20,12 +21,9 @@ function getPlayerId() {
             "playerId",
             playerId
         );
-
     }
 
-
     return playerId;
-
 }
 
 
@@ -34,90 +32,28 @@ const playerId =
 
 
 // =========================
-// SHOW CREATE GAME
-// =========================
-
-function showCreate() {
-
-    document
-        .getElementById("createSection")
-        .classList.remove("hidden");
-
-
-    document
-        .getElementById("joinSection")
-        .classList.add("hidden");
-
-}
-
-
-// =========================
-// SHOW JOIN GAME
+// JOIN PANEL
 // =========================
 
 function showJoin() {
 
-    document
-        .getElementById("joinSection")
-        .classList.remove("hidden");
-
-
-    document
-        .getElementById("createSection")
-        .classList.add("hidden");
-
-}
-
-
-// =========================
-// CREATE GAME
-// =========================
-
-function createGame() {
-
-    const playerName =
-        document
-            .getElementById("hostName")
-            .value
-            .trim();
-
-
-    const gameType =
-        document
-            .getElementById("gameType")
-            .value;
-
-
-    if (!playerName) {
-
-        alert(
-            "Please enter your name."
+    const joinSection =
+        document.getElementById(
+            "joinSection"
         );
 
+    if (!joinSection) {
         return;
-
     }
 
-
-    // Save player's name
-    localStorage.setItem(
-        "playerName",
-        playerName
+    joinSection.classList.remove(
+        "hidden"
     );
 
-
-    socket.emit(
-        "createRoom",
-        {
-
-            playerId: playerId,
-
-            playerName: playerName,
-
-            gameType: gameType
-
-        }
-    );
+    joinSection.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
 
 }
 
@@ -130,14 +66,18 @@ function joinGame() {
 
     const playerName =
         document
-            .getElementById("playerName")
+            .getElementById(
+                "playerName"
+            )
             .value
             .trim();
 
 
     const roomCode =
         document
-            .getElementById("roomCode")
+            .getElementById(
+                "roomCode"
+            )
             .value
             .trim()
             .toUpperCase();
@@ -150,7 +90,6 @@ function joinGame() {
         );
 
         return;
-
     }
 
 
@@ -161,7 +100,6 @@ function joinGame() {
         );
 
         return;
-
     }
 
 
@@ -175,15 +113,17 @@ function joinGame() {
         "joinRoom",
         {
 
-            playerId: playerId,
+            playerId:
+                playerId,
 
-            playerName: playerName,
+            playerName:
+                playerName,
 
-            roomCode: roomCode
+            roomCode:
+                roomCode
 
         }
     );
-
 }
 
 
@@ -193,7 +133,11 @@ function joinGame() {
 
 socket.on(
     "roomCreated",
-    ({ roomCode, gameType, playerId }) => {
+    ({
+        roomCode,
+        gameType,
+        playerId
+    }) => {
 
         localStorage.setItem(
             "roomCode",
@@ -226,7 +170,11 @@ socket.on(
 
 socket.on(
     "joinedRoom",
-    ({ roomCode, gameType, playerId }) => {
+    ({
+        roomCode,
+        gameType,
+        playerId
+    }) => {
 
         localStorage.setItem(
             "roomCode",
@@ -254,7 +202,7 @@ socket.on(
 
 
 // =========================
-// ERROR
+// ERRORS
 // =========================
 
 socket.on(
