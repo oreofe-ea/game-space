@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <meta charset="UTF-8">
@@ -9,11 +10,11 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Quiz Arena | Game Space</title>
+    <title>Game Space</title>
 
     <link
         rel="stylesheet"
-        href="style.css?v=5"
+        href="style.css?v=6"
     >
 
 </head>
@@ -24,6 +25,7 @@
     <main class="page-shell">
 
         <!-- HEADER -->
+
         <header class="site-header">
 
             <a
@@ -33,12 +35,17 @@
                 GAME SPACE
             </a>
 
+
             <div class="game-header-right">
 
-                <div class="game-label">
+                <div
+                    id="liveGameLabel"
+                    class="game-label"
+                >
                     <span>●</span>
                     LIVE GAME
                 </div>
+
 
                 <a
                     href="/games.html"
@@ -52,36 +59,55 @@
         </header>
 
 
+
         <!-- GAME -->
+
         <section class="game-layout">
 
-            <!-- QUESTION -->
+
+            <!-- MAIN GAME PANEL -->
+
             <section
                 class="panel question-panel"
+                id="gamePanel"
             >
+
+
+                <!-- GAME TITLE -->
 
                 <div class="question-top">
 
                     <div>
 
-                        <p class="eyebrow">
-                            QUIZ ARENA
+                        <p
+                            id="gameEyebrow"
+                            class="eyebrow"
+                        >
+                            GAME SPACE
                         </p>
 
                     </div>
+
 
                     <div
                         id="questionNumber"
                         class="question-number"
                     >
-                        Question 1
+                        Loading...
                     </div>
 
                 </div>
 
 
-                <!-- TIMER -->
-                <div class="timer-area">
+
+                <!-- ================================================= -->
+                <!-- QUIZ / PUZZLE TIMER -->
+                <!-- ================================================= -->
+
+                <div
+                    id="timerArea"
+                    class="timer-area"
+                >
 
                     <div
                         id="timer"
@@ -89,6 +115,7 @@
                     >
                         15
                     </div>
+
 
                     <div class="timer-track">
 
@@ -102,54 +129,272 @@
                 </div>
 
 
-                <!-- QUESTION -->
-                <h1 id="question">
-                    Loading question...
-                </h1>
+
+                <!-- ================================================= -->
+                <!-- QUIZ -->
+                <!-- ================================================= -->
+
+                <div
+                    id="quizGame"
+                    class="game-mode"
+                >
+
+                    <h1 id="question">
+                        Loading question...
+                    </h1>
 
 
-                <!-- ANSWERS -->
-                <div id="answers">
+                    <div id="answers">
 
-                    <button
-                        class="answer"
-                        data-index="0"
-                    >
-                        Loading...
-                    </button>
+                        <button
+                            class="answer"
+                            data-index="0"
+                        >
+                            Loading...
+                        </button>
 
-                    <button
-                        class="answer"
-                        data-index="1"
-                    >
-                        Loading...
-                    </button>
 
-                    <button
-                        class="answer"
-                        data-index="2"
-                    >
-                        Loading...
-                    </button>
+                        <button
+                            class="answer"
+                            data-index="1"
+                        >
+                            Loading...
+                        </button>
 
-                    <button
-                        class="answer"
-                        data-index="3"
-                    >
-                        Loading...
-                    </button>
+
+                        <button
+                            class="answer"
+                            data-index="2"
+                        >
+                            Loading...
+                        </button>
+
+
+                        <button
+                            class="answer"
+                            data-index="3"
+                        >
+                            Loading...
+                        </button>
+
+                    </div>
 
                 </div>
 
 
+
+                <!-- ================================================= -->
+                <!-- WORD SCRAMBLE -->
+                <!-- ================================================= -->
+
+                <div
+                    id="scrambleGame"
+                    class="game-mode hidden"
+                >
+
+                    <p class="eyebrow">
+                        UNSCRAMBLE THE WORD
+                    </p>
+
+
+                    <h1
+                        id="scrambledWord"
+                        class="scrambled-word"
+                    >
+                        LOADING
+                    </h1>
+
+
+                    <p
+                        id="scrambleHint"
+                        class="game-hint"
+                    >
+                        Rearrange the letters to find the word.
+                    </p>
+
+
+                    <div class="scramble-input-area">
+
+                        <input
+                            type="text"
+                            id="scrambleInput"
+                            placeholder="Type your answer..."
+                            autocomplete="off"
+                        >
+
+
+                        <button
+                            id="scrambleSubmit"
+                            class="primary-button"
+                        >
+                            Submit
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- PUZZLE RUSH -->
+                <!-- ================================================= -->
+
+                <div
+                    id="puzzleGame"
+                    class="game-mode hidden"
+                >
+
+                    <p class="eyebrow">
+                        PUZZLE RUSH
+                    </p>
+
+
+                    <h1 id="puzzleQuestion">
+                        Loading puzzle...
+                    </h1>
+
+
+                    <div id="puzzleAnswers">
+
+                        <button
+                            class="puzzle-answer"
+                            data-index="0"
+                        >
+                            Loading...
+                        </button>
+
+
+                        <button
+                            class="puzzle-answer"
+                            data-index="1"
+                        >
+                            Loading...
+                        </button>
+
+
+                        <button
+                            class="puzzle-answer"
+                            data-index="2"
+                        >
+                            Loading...
+                        </button>
+
+
+                        <button
+                            class="puzzle-answer"
+                            data-index="3"
+                        >
+                            Loading...
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- BINGO -->
+                <!-- ================================================= -->
+
+                <div
+                    id="bingoGame"
+                    class="game-mode hidden"
+                >
+
+                    <p class="eyebrow">
+                        BINGO
+                    </p>
+
+
+                    <div
+                        id="bingoCalledNumber"
+                        class="bingo-called-number"
+                    >
+                        —
+                    </div>
+
+
+                    <p class="game-hint">
+                        Mark your numbers as they are called.
+                    </p>
+
+
+                    <div
+                        id="bingoCard"
+                        class="bingo-card"
+                    ></div>
+
+
+                    <button
+                        id="claimBingoButton"
+                        class="primary-button"
+                    >
+                        BINGO!
+                    </button>
+
+
+                    <div
+                        id="bingoHistory"
+                        class="bingo-history"
+                    ></div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
+                <!-- MEMORY MATCH -->
+                <!-- ================================================= -->
+
+                <div
+                    id="memoryGame"
+                    class="game-mode hidden"
+                >
+
+                    <p class="eyebrow">
+                        MEMORY MATCH
+                    </p>
+
+
+                    <h1 id="memoryTurn">
+                        Waiting for turn...
+                    </h1>
+
+
+                    <p
+                        id="memoryInstruction"
+                        class="game-hint"
+                    >
+                        Match the hidden pairs.
+                    </p>
+
+
+                    <div
+                        id="memoryBoard"
+                        class="memory-board"
+                    ></div>
+
+                </div>
+
+
+
+                <!-- ================================================= -->
                 <!-- ANSWER MESSAGE -->
+                <!-- ================================================= -->
+
                 <p
                     id="answerMessage"
                     class="hidden"
                 ></p>
 
 
-                <!-- RESULTS NAVIGATION -->
+
+                <!-- ================================================= -->
+                <!-- GAME OVER -->
+                <!-- ================================================= -->
+
                 <div
                     id="resultsNavigation"
                     class="results-navigation hidden"
@@ -162,12 +407,14 @@
                         Play again
                     </button>
 
+
                     <a
                         href="/games.html"
                         class="secondary-button"
                     >
                         Game hub
                     </a>
+
 
                     <a
                         href="/"
@@ -181,7 +428,11 @@
             </section>
 
 
+
+            <!-- ================================================= -->
             <!-- LIVE SCOREBOARD -->
+            <!-- ================================================= -->
+
             <section
                 class="panel score-panel"
             >
@@ -193,6 +444,7 @@
                         <p class="eyebrow">
                             CURRENT STANDINGS
                         </p>
+
 
                         <h2>
                             Live Scores
@@ -218,9 +470,11 @@
     </main>
 
 
+
     <script src="/socket.io/socket.io.js"></script>
 
-    <script src="game.js?v=5"></script>
+    <script src="game.js?v=6"></script>
 
 </body>
+
 </html>
