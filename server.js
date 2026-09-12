@@ -3496,9 +3496,9 @@ io.on(
 
 
                 if (
-                    first.symbol ===
-                    second.symbol
-                {
+    first.symbol ===
+    second.symbol
+) {
 
                     first.matched =
                         true;
