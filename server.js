@@ -6,11 +6,16 @@ const fs = require("fs");
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(
+    express.static(
+        path.join(__dirname, "public")
+    )
+);
 
 
 /*
@@ -19,16 +24,32 @@ app.use(express.static(path.join(__dirname, "public")));
 |--------------------------------------------------------------------------
 */
 
-const quizPath = path.join(__dirname, "data", "quiz.json");
+const quizPath =
+    path.join(
+        __dirname,
+        "data",
+        "quiz.json"
+    );
 
 let questionBank = [];
 
 try {
-    questionBank = JSON.parse(
-        fs.readFileSync(quizPath, "utf8")
-    );
+
+    questionBank =
+        JSON.parse(
+            fs.readFileSync(
+                quizPath,
+                "utf8"
+            )
+        );
+
 } catch (error) {
-    console.error("Could not load quiz.json:", error);
+
+    console.error(
+        "Could not load quiz.json:",
+        error
+    );
+
 }
 
 
@@ -40,16 +61,27 @@ try {
 
 const rooms = {};
 
-const DISCONNECT_GRACE_PERIOD = 30000;
+const DISCONNECT_GRACE_PERIOD =
+    30000;
 
-const DEFAULT_QUESTIONS_PER_GAME = 10;
+const DEFAULT_QUESTIONS_PER_GAME =
+    10;
+
 const MIN_QUESTIONS = 5;
+
 const MAX_QUESTIONS = 20;
 
 const QUESTION_TIME = 15;
 
-const GAME_READY_TIMEOUT = 10000;
-const NEXT_QUESTION_DELAY = 1500;
+const GAME_READY_TIMEOUT =
+    10000;
+
+const NEXT_QUESTION_DELAY =
+    1500;
+
+const SCRAMBLE_TIME = 20;
+
+const PUZZLE_TIME = 20;
 
 
 /*
@@ -71,13 +103,10 @@ const GAME_TYPES = [
 |--------------------------------------------------------------------------
 | WORD BANK
 |--------------------------------------------------------------------------
-|
-| Word Scramble uses this bank directly.
-| A fresh selection is made every game.
-|
 */
 
 const wordBank = [
+
     "africa",
     "agriculture",
     "adventure",
@@ -123,6 +152,7 @@ const wordBank = [
     "victory",
     "wildlife",
     "wisdom"
+
 ];
 
 
@@ -136,7 +166,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What number comes next? 2, 4, 8, 16, ?",
+        question:
+            "What number comes next? 2, 4, 8, 16, ?",
         answers: [
             "24",
             "32",
@@ -148,7 +179,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What number comes next? 3, 6, 12, 24, ?",
+        question:
+            "What number comes next? 3, 6, 12, 24, ?",
         answers: [
             "36",
             "42",
@@ -160,7 +192,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "If all roses are flowers and some flowers fade quickly, which statement must be true?",
+        question:
+            "If all roses are flowers and some flowers fade quickly, which statement must be true?",
         answers: [
             "All roses fade quickly",
             "Some roses fade quickly",
@@ -172,7 +205,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "A clock shows 3:00. What angle is between the hour and minute hands?",
+        question:
+            "A clock shows 3:00. What angle is between the hour and minute hands?",
         answers: [
             "45 degrees",
             "60 degrees",
@@ -184,7 +218,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 1, 1, 2, 3, 5, 8, ?",
+        question:
+            "What comes next? 1, 1, 2, 3, 5, 8, ?",
         answers: [
             "11",
             "12",
@@ -196,7 +231,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "If you have three apples and take away two, how many apples do you have?",
+        question:
+            "If you have three apples and take away two, how many apples do you have?",
         answers: [
             "1",
             "2",
@@ -208,7 +244,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What number is missing? 5, 10, 15, ?, 25",
+        question:
+            "What number is missing? 5, 10, 15, ?, 25",
         answers: [
             "18",
             "19",
@@ -220,7 +257,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "Which is the odd one out?",
+        question:
+            "Which is the odd one out?",
         answers: [
             "Triangle",
             "Square",
@@ -232,7 +270,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 100, 90, 80, 70, ?",
+        question:
+            "What comes next? 100, 90, 80, 70, ?",
         answers: [
             "65",
             "60",
@@ -244,7 +283,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "A farmer has 10 chickens. All but 3 run away. How many remain?",
+        question:
+            "A farmer has 10 chickens. All but 3 run away. How many remain?",
         answers: [
             "3",
             "7",
@@ -256,7 +296,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 2, 6, 12, 20, ?",
+        question:
+            "What comes next? 2, 6, 12, 20, ?",
         answers: [
             "28",
             "30",
@@ -268,7 +309,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "Which word does not belong?",
+        question:
+            "Which word does not belong?",
         answers: [
             "Apple",
             "Mango",
@@ -280,7 +322,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 1, 4, 9, 16, ?",
+        question:
+            "What comes next? 1, 4, 9, 16, ?",
         answers: [
             "20",
             "24",
@@ -292,7 +335,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "If Monday is the first day, what day is the fourth day?",
+        question:
+            "If Monday is the first day, what day is the fourth day?",
         answers: [
             "Tuesday",
             "Wednesday",
@@ -304,7 +348,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 81, 27, 9, 3, ?",
+        question:
+            "What comes next? 81, 27, 9, 3, ?",
         answers: [
             "1",
             "0",
@@ -316,7 +361,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "Which shape has the most sides?",
+        question:
+            "Which shape has the most sides?",
         answers: [
             "Triangle",
             "Pentagon",
@@ -328,7 +374,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 7, 14, 21, 28, ?",
+        question:
+            "What comes next? 7, 14, 21, 28, ?",
         answers: [
             "32",
             "35",
@@ -340,7 +387,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "If today is Wednesday, what day will it be in three days?",
+        question:
+            "If today is Wednesday, what day will it be in three days?",
         answers: [
             "Friday",
             "Saturday",
@@ -352,7 +400,8 @@ const puzzleBank = [
 
     {
         type: "sequence",
-        question: "What comes next? 50, 45, 40, 35, ?",
+        question:
+            "What comes next? 50, 45, 40, 35, ?",
         answers: [
             "25",
             "28",
@@ -364,7 +413,8 @@ const puzzleBank = [
 
     {
         type: "logic",
-        question: "Which one is different from the others?",
+        question:
+            "Which one is different from the others?",
         answers: [
             "Red",
             "Blue",
@@ -379,11 +429,12 @@ const puzzleBank = [
 
 /*
 |--------------------------------------------------------------------------
-| MEMORY CARD SYMBOLS
+| MEMORY SYMBOLS
 |--------------------------------------------------------------------------
 */
 
 const memorySymbols = [
+
     "🍎",
     "🌍",
     "⭐",
@@ -396,6 +447,7 @@ const memorySymbols = [
     "🐘",
     "🏆",
     "🔥"
+
 ];
 
 
@@ -447,7 +499,7 @@ function generateRoomCode() {
 
         for (
             let i = 0;
-            i < 5;
+            i < 6;
             i++
         ) {
 
@@ -467,6 +519,19 @@ function generateRoomCode() {
 }
 
 
+function normalizeRoomCode(
+    roomCode
+) {
+
+    return String(
+        roomCode || ""
+    )
+        .trim()
+        .toUpperCase();
+
+}
+
+
 function findPlayer(
     room,
     playerId
@@ -483,7 +548,9 @@ function findPlayer(
 }
 
 
-function getConnectedPlayers(room) {
+function getConnectedPlayers(
+    room
+) {
 
     if (!room) {
         return [];
@@ -497,7 +564,9 @@ function getConnectedPlayers(room) {
 }
 
 
-function clearRoomTimers(room) {
+function clearRoomTimers(
+    room
+) {
 
     if (!room) {
         return;
@@ -616,11 +685,11 @@ function createQuestionSet(
     settings = {}
 ) {
 
-    let category =
+    const category =
         settings.category ||
         "general";
 
-    let difficulty =
+    const difficulty =
         settings.difficulty ||
         "mixed";
 
@@ -630,13 +699,14 @@ function createQuestionSet(
         ) ||
         DEFAULT_QUESTIONS_PER_GAME;
 
-    count = Math.max(
-        MIN_QUESTIONS,
-        Math.min(
-            MAX_QUESTIONS,
-            count
-        )
-    );
+    count =
+        Math.max(
+            MIN_QUESTIONS,
+            Math.min(
+                MAX_QUESTIONS,
+                count
+            )
+        );
 
 
     let categoryQuestions =
@@ -673,7 +743,7 @@ function createQuestionSet(
     }
 
 
-    let remaining =
+    const remaining =
         categoryQuestions.filter(
             question =>
                 !preferred.includes(
@@ -682,17 +752,13 @@ function createQuestionSet(
         );
 
 
-    const selected =
-        shuffle([
-            ...shuffle(preferred),
-            ...shuffle(remaining)
-        ]).slice(
-            0,
-            count
-        );
-
-
-    return selected;
+    return shuffle([
+        ...shuffle(preferred),
+        ...shuffle(remaining)
+    ]).slice(
+        0,
+        count
+    );
 
 }
 
@@ -735,7 +801,11 @@ function sendQuestion(
     room.questionStartedAt =
         Date.now();
 
-    room.currentQuestionAnswers = {};
+    // FIX:
+    // Use the same property that submitAnswer()
+    // uses.
+
+    room.questionAnswers = {};
 
     room.questionActive = true;
 
@@ -771,6 +841,7 @@ function sendQuestion(
             () => {
 
                 if (
+                    !rooms[roomCode] ||
                     room.status !==
                     "playing"
                 ) {
@@ -848,11 +919,15 @@ function finishGame(
     }
 
 
-    clearRoomTimers(room);
+    clearRoomTimers(
+        room
+    );
 
-    room.status = "finished";
+    room.status =
+        "finished";
 
-    room.questionActive = false;
+    room.questionActive =
+        false;
 
 
     const players =
@@ -871,7 +946,7 @@ function finishGame(
 
 /*
 |--------------------------------------------------------------------------
-| WORD SCRAMBLE ENGINE
+| WORD SCRAMBLE
 |--------------------------------------------------------------------------
 */
 
@@ -904,20 +979,16 @@ function scrambleWord(
 
 
 function createScrambleSet(
-    count = 10
+    count = DEFAULT_QUESTIONS_PER_GAME
 ) {
 
-    const available =
-        shuffle(
-            wordBank
-        );
-
-
-    return available.slice(
+    return shuffle(
+        wordBank
+    ).slice(
         0,
         Math.min(
             count,
-            available.length
+            wordBank.length
         )
     );
 
@@ -965,7 +1036,8 @@ function sendScrambleWord(
     room.scrambleStartedAt =
         Date.now();
 
-    room.scrambleAnswered = {};
+    room.scrambleAnswered =
+        {};
 
 
     const scrambled =
@@ -985,12 +1057,12 @@ function sendScrambleWord(
                 room.scrambleWords.length,
 
             scrambled,
-            
+
             wordLength:
                 word.length,
 
             timeLimit:
-                20
+                SCRAMBLE_TIME
 
         }
     );
@@ -1001,7 +1073,7 @@ function sendScrambleWord(
             () => {
 
                 if (
-                    !room.questionActive &&
+                    !rooms[roomCode] ||
                     room.status !==
                     "playing"
                 ) {
@@ -1019,7 +1091,7 @@ function sendScrambleWord(
                 );
 
             },
-            20000
+            SCRAMBLE_TIME * 1000
         );
 
 }
@@ -1027,12 +1099,12 @@ function sendScrambleWord(
 
 /*
 |--------------------------------------------------------------------------
-| PUZZLE RUSH ENGINE
+| PUZZLE RUSH
 |--------------------------------------------------------------------------
 */
 
 function createPuzzleSet(
-    count = 10
+    count = DEFAULT_QUESTIONS_PER_GAME
 ) {
 
     return shuffle(
@@ -1089,7 +1161,8 @@ function sendPuzzle(
     room.puzzleStartedAt =
         Date.now();
 
-    room.puzzleAnswers = {};
+    room.puzzleAnswers =
+        {};
 
 
     io.to(roomCode).emit(
@@ -1112,7 +1185,7 @@ function sendPuzzle(
                 puzzle.answers,
 
             timeLimit:
-                20
+                PUZZLE_TIME
 
         }
     );
@@ -1121,6 +1194,14 @@ function sendPuzzle(
     room.nextQuestionTimer =
         setTimeout(
             () => {
+
+                if (
+                    !rooms[roomCode] ||
+                    room.status !==
+                    "playing"
+                ) {
+                    return;
+                }
 
                 io.to(roomCode).emit(
                     "puzzleEnded"
@@ -1133,7 +1214,7 @@ function sendPuzzle(
                 );
 
             },
-            20000
+            PUZZLE_TIME * 1000
         );
 
 }
@@ -1141,7 +1222,7 @@ function sendPuzzle(
 
 /*
 |--------------------------------------------------------------------------
-| BINGO ENGINE
+| BINGO
 |--------------------------------------------------------------------------
 */
 
@@ -1159,8 +1240,8 @@ function generateBingoCard() {
         );
 
 
-    const card =
-        [];
+    const card = [];
+
 
     for (
         let row = 0;
@@ -1169,6 +1250,7 @@ function generateBingoCard() {
     ) {
 
         const currentRow = [];
+
 
         for (
             let column = 0;
@@ -1184,6 +1266,7 @@ function generateBingoCard() {
             );
 
         }
+
 
         card.push(
             currentRow
@@ -1205,11 +1288,14 @@ function createBingoState(
     room
 ) {
 
-    room.bingoCalled = [];
+    room.bingoCalled =
+        [];
 
-    room.bingoCards = {};
+    room.bingoCards =
+        {};
 
-    room.bingoWinner = null;
+    room.bingoWinner =
+        null;
 
 
     room.players.forEach(
@@ -1245,6 +1331,12 @@ function sendBingoStart(
 
     room.players.forEach(
         player => {
+
+            if (
+                !player.connected
+            ) {
+                return;
+            }
 
             io.to(
                 player.socketId
@@ -1295,6 +1387,7 @@ function sendBingoStart(
             () => {
 
                 if (
+                    !rooms[roomCode] ||
                     room.status !==
                     "playing"
                 ) {
@@ -1302,6 +1395,9 @@ function sendBingoStart(
                     clearInterval(
                         room.bingoTimer
                     );
+
+                    room.bingoTimer =
+                        null;
 
                     return;
 
@@ -1316,6 +1412,9 @@ function sendBingoStart(
                     clearInterval(
                         room.bingoTimer
                     );
+
+                    room.bingoTimer =
+                        null;
 
                     finishGame(
                         roomCode
@@ -1344,11 +1443,11 @@ function sendBingoStart(
                     "bingoNumberCalled",
                     {
                         number,
+
                         calledNumbers:
                             room.bingoCalled
                     }
                 );
-
 
             },
             1500
@@ -1380,8 +1479,6 @@ function checkBingoWin(
         );
 
 
-    // Rows
-
     for (
         let row = 0;
         row < 5;
@@ -1393,13 +1490,13 @@ function checkBingoWin(
                 Boolean
             )
         ) {
+
             return true;
+
         }
 
     }
 
-
-    // Columns
 
     for (
         let column = 0;
@@ -1407,7 +1504,9 @@ function checkBingoWin(
         column++
     ) {
 
-        let complete = true;
+        let complete =
+            true;
+
 
         for (
             let row = 0;
@@ -1419,7 +1518,8 @@ function checkBingoWin(
                 !marked[row][column]
             ) {
 
-                complete = false;
+                complete =
+                    false;
 
                 break;
 
@@ -1435,10 +1535,11 @@ function checkBingoWin(
     }
 
 
-    // Diagonal
+    let diagonalOne =
+        true;
 
-    let diagonalOne = true;
-    let diagonalTwo = true;
+    let diagonalTwo =
+        true;
 
 
     for (
@@ -1481,7 +1582,7 @@ function checkBingoWin(
 
 /*
 |--------------------------------------------------------------------------
-| MEMORY MATCH ENGINE
+| MEMORY MATCH
 |--------------------------------------------------------------------------
 */
 
@@ -1496,8 +1597,7 @@ function createMemoryBoard() {
         );
 
 
-    const cards =
-        [];
+    const cards = [];
 
 
     symbols.forEach(
@@ -1554,22 +1654,17 @@ function startMemoryGame(
     room.memoryBoard =
         createMemoryBoard();
 
-
     room.memoryTurnIndex =
         0;
-
 
     room.memoryTurnPlayerId =
         null;
 
-
     room.memoryFirstCard =
         null;
 
-
     room.memorySecondCard =
         null;
-
 
     room.memoryLocked =
         false;
@@ -1629,7 +1724,8 @@ function moveToNextMemoryPlayer(
         players.length
     ) {
 
-        room.memoryTurnIndex = 0;
+        room.memoryTurnIndex =
+            0;
 
     }
 
@@ -1668,6 +1764,11 @@ function finishMemoryGame(
     if (!room) {
         return;
     }
+
+
+    clearRoomTimers(
+        room
+    );
 
 
     const players =
@@ -1714,10 +1815,8 @@ function startGameForRoom(
     room.status =
         "playing";
 
-
     room.startedAt =
         Date.now();
-
 
     room.currentQuestionIndex =
         0;
@@ -1726,7 +1825,11 @@ function startGameForRoom(
     room.players.forEach(
         player => {
 
-            player.score = 0;
+            player.score =
+                0;
+
+            player.ready =
+                false;
 
         }
     );
@@ -1742,7 +1845,6 @@ function startGameForRoom(
                 getGameTitle(
                     room.gameType
                 )
-
         }
     );
 
@@ -1764,6 +1866,9 @@ function startGameForRoom(
             room.questionStartedAt =
                 null;
 
+            room.questionAnswers =
+                {};
+
             sendQuestion(
                 roomCode
             );
@@ -1779,6 +1884,9 @@ function startGameForRoom(
                     DEFAULT_QUESTIONS_PER_GAME
                 );
 
+            room.scrambleAnswered =
+                {};
+
             sendScrambleWord(
                 roomCode
             );
@@ -1793,6 +1901,9 @@ function startGameForRoom(
                     room.settings.questions ||
                     DEFAULT_QUESTIONS_PER_GAME
                 );
+
+            room.puzzleAnswers =
+                {};
 
             sendPuzzle(
                 roomCode
@@ -1938,7 +2049,63 @@ function sendScores(
 
 /*
 |--------------------------------------------------------------------------
-| CREATE ROOM
+| HOST MANAGEMENT
+|--------------------------------------------------------------------------
+*/
+
+function assignNewHost(
+    roomCode
+) {
+
+    const room =
+        rooms[roomCode];
+
+    if (!room) {
+        return null;
+    }
+
+
+    const connectedPlayers =
+        getConnectedPlayers(
+            room
+        );
+
+
+    const nextHost =
+        connectedPlayers[0] ||
+        null;
+
+
+    room.hostPlayerId =
+        nextHost
+            ? nextHost.id
+            : null;
+
+
+    if (nextHost) {
+
+        io.to(roomCode).emit(
+            "hostChanged",
+            {
+                hostPlayerId:
+                    nextHost.id,
+
+                hostName:
+                    nextHost.name
+            }
+        );
+
+    }
+
+
+    return nextHost;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SOCKET.IO
 |--------------------------------------------------------------------------
 */
 
@@ -1952,17 +2119,21 @@ io.on(
         );
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | CREATE ROOM
+        |--------------------------------------------------------------------------
+        */
+
         socket.on(
             "createRoom",
             data => {
 
                 const {
-
                     playerId,
                     playerName,
                     gameType,
                     settings
-
                 } = data || {};
 
 
@@ -2007,6 +2178,9 @@ io.on(
                     code:
                         roomCode,
 
+                    // IMPORTANT:
+                    // The creator is ALWAYS the host.
+
                     hostPlayerId:
                         playerId,
 
@@ -2032,26 +2206,47 @@ io.on(
                     questionStartedAt:
                         null,
 
+                    questionAnswers:
+                        {},
+
                     nextQuestionTimer:
                         null,
 
                     readyTimer:
                         null,
 
-                    nextQuestionAnswers:
-                        {},
-
                     scrambleWords:
                         [],
 
+                    currentScrambleWord:
+                        null,
+
+                    scrambleStartedAt:
+                        null,
+
+                    scrambleAnswered:
+                        {},
+
                     puzzleSet:
                         [],
+
+                    currentPuzzle:
+                        null,
+
+                    puzzleStartedAt:
+                        null,
+
+                    puzzleAnswers:
+                        {},
 
                     bingoCards:
                         {},
 
                     bingoCalled:
                         [],
+
+                    bingoWinner:
+                        null,
 
                     bingoTimer:
                         null,
@@ -2072,7 +2267,10 @@ io.on(
                         null,
 
                     memoryLocked:
-                        false
+                        false,
+
+                    memoryTimer:
+                        null
 
                 };
 
@@ -2120,8 +2318,11 @@ io.on(
                     "roomCreated",
                     {
                         roomCode,
+
                         gameType:
-                            selectedGame
+                            selectedGame,
+
+                        playerId
                     }
                 );
 
@@ -2150,20 +2351,16 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId,
                     playerName
-
                 } = data || {};
 
 
                 const code =
-                    String(
-                        roomCode || ""
-                    )
-                        .trim()
-                        .toUpperCase();
+                    normalizeRoomCode(
+                        roomCode
+                    );
 
 
                 const room =
@@ -2197,6 +2394,18 @@ io.on(
                 }
 
 
+                if (!playerId) {
+
+                    socket.emit(
+                        "errorMessage",
+                        "Missing player ID."
+                    );
+
+                    return;
+
+                }
+
+
                 let player =
                     findPlayer(
                         room,
@@ -2206,6 +2415,8 @@ io.on(
 
                 if (player) {
 
+                    // Rejoining the same room.
+
                     player.socketId =
                         socket.id;
 
@@ -2214,6 +2425,15 @@ io.on(
 
                     player.disconnectedAt =
                         null;
+
+                    if (playerName) {
+
+                        player.name =
+                            String(
+                                playerName
+                            ).trim();
+
+                    }
 
                 } else {
 
@@ -2265,7 +2485,10 @@ io.on(
                             code,
 
                         gameType:
-                            room.gameType
+                            room.gameType,
+
+                        playerId:
+                            player.id
                     }
                 );
 
@@ -2285,7 +2508,7 @@ io.on(
 
         /*
         |--------------------------------------------------------------------------
-        | RECONNECT
+        | RECONNECT TO ROOM
         |--------------------------------------------------------------------------
         */
 
@@ -2294,21 +2517,19 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (!room) {
@@ -2353,13 +2574,14 @@ io.on(
 
 
                 socket.join(
-                    room.code
+                    code
                 );
 
 
                 socket.emit(
                     "reconnected",
                     {
+
                         roomCode:
                             room.code,
 
@@ -2367,20 +2589,33 @@ io.on(
                             room.gameType,
 
                         status:
-                            room.status
+                            room.status,
+
+                        hostPlayerId:
+                            room.hostPlayerId,
+
+                        playerId:
+                            player.id
+
                     }
                 );
 
 
                 sendRoomUpdate(
-                    room.code
+                    code
                 );
 
 
                 sendScores(
-                    room.code
+                    code
                 );
 
+
+                /*
+                |------------------------------------------------------------------
+                | Restore active quiz question
+                |------------------------------------------------------------------
+                */
 
                 if (
                     room.gameType ===
@@ -2459,21 +2694,19 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (!room) {
@@ -2557,11 +2790,11 @@ io.on(
 
 
                 sendRoomUpdate(
-                    roomCode
+                    code
                 );
 
 
-                io.to(roomCode).emit(
+                io.to(code).emit(
                     "gameStarting",
                     {
                         gameType:
@@ -2575,6 +2808,7 @@ io.on(
                         () => {
 
                             if (
+                                !rooms[code] ||
                                 room.status !==
                                 "starting"
                             ) {
@@ -2583,7 +2817,7 @@ io.on(
 
 
                             startGameForRoom(
-                                roomCode
+                                code
                             );
 
                         },
@@ -2605,21 +2839,19 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (!room) {
@@ -2655,11 +2887,10 @@ io.on(
 
 
                 const everyoneReady =
-                    connectedPlayers.length >
-                        0 &&
+                    connectedPlayers.length > 0 &&
                     connectedPlayers.every(
-                        player =>
-                            player.ready
+                        item =>
+                            item.ready
                     );
 
 
@@ -2675,7 +2906,7 @@ io.on(
 
 
                     startGameForRoom(
-                        roomCode
+                        code
                     );
 
                 }
@@ -2695,22 +2926,20 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId,
                     answerIndex
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (
@@ -2747,22 +2976,11 @@ io.on(
 
 
                 if (
-                    room.questionAnswers &&
                     room.questionAnswers[
                         playerId
                     ]
                 ) {
                     return;
-                }
-
-
-                if (
-                    !room.questionAnswers
-                ) {
-
-                    room.questionAnswers =
-                        {};
-
                 }
 
 
@@ -2841,7 +3059,7 @@ io.on(
 
 
                 sendScores(
-                    roomCode
+                    code
                 );
 
 
@@ -2875,13 +3093,13 @@ io.on(
                         null;
 
 
-                    io.to(roomCode).emit(
+                    io.to(code).emit(
                         "questionEnded"
                     );
 
 
                     nextQuestion(
-                        roomCode
+                        code
                     );
 
                 }
@@ -2901,22 +3119,20 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId,
                     answer
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (
@@ -2937,7 +3153,10 @@ io.on(
                     );
 
 
-                if (!player) {
+                if (
+                    !player ||
+                    !player.connected
+                ) {
                     return;
                 }
 
@@ -2953,7 +3172,8 @@ io.on(
 
                 room.scrambleAnswered[
                     playerId
-                ] = true;
+                ] =
+                    true;
 
 
                 const correct =
@@ -2980,7 +3200,7 @@ io.on(
                     const remaining =
                         Math.max(
                             0,
-                            20 -
+                            SCRAMBLE_TIME -
                             elapsed
                         );
 
@@ -2991,7 +3211,7 @@ io.on(
                             500 *
                             (
                                 remaining /
-                                20
+                                SCRAMBLE_TIME
                             )
                         );
 
@@ -3012,7 +3232,7 @@ io.on(
 
 
                 sendScores(
-                    roomCode
+                    code
                 );
 
 
@@ -3031,7 +3251,7 @@ io.on(
                             () => {
 
                                 sendScrambleWord(
-                                    roomCode
+                                    code
                                 );
 
                             },
@@ -3055,22 +3275,20 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId,
                     answerIndex
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (
@@ -3091,7 +3309,10 @@ io.on(
                     );
 
 
-                if (!player) {
+                if (
+                    !player ||
+                    !player.connected
+                ) {
                     return;
                 }
 
@@ -3107,11 +3328,17 @@ io.on(
 
                 room.puzzleAnswers[
                     playerId
-                ] = true;
+                ] =
+                    true;
 
 
                 const puzzle =
                     room.currentPuzzle;
+
+
+                if (!puzzle) {
+                    return;
+                }
 
 
                 const correct =
@@ -3136,7 +3363,7 @@ io.on(
                     const remaining =
                         Math.max(
                             0,
-                            20 -
+                            PUZZLE_TIME -
                             elapsed
                         );
 
@@ -3147,7 +3374,7 @@ io.on(
                             500 *
                             (
                                 remaining /
-                                20
+                                PUZZLE_TIME
                             )
                         );
 
@@ -3168,7 +3395,7 @@ io.on(
 
 
                 sendScores(
-                    roomCode
+                    code
                 );
 
 
@@ -3198,7 +3425,7 @@ io.on(
                             () => {
 
                                 sendPuzzle(
-                                    roomCode
+                                    code
                                 );
 
                             },
@@ -3222,21 +3449,19 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (
@@ -3333,11 +3558,11 @@ io.on(
 
 
                 sendScores(
-                    roomCode
+                    code
                 );
 
 
-                io.to(roomCode).emit(
+                io.to(code).emit(
                     "bingoWinner",
                     {
                         playerId:
@@ -3350,7 +3575,7 @@ io.on(
 
 
                 finishGame(
-                    roomCode
+                    code
                 );
 
             }
@@ -3368,22 +3593,20 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId,
                     cardId
-
                 } = data || {};
 
 
+                const code =
+                    normalizeRoomCode(
+                        roomCode
+                    );
+
+
                 const room =
-                    rooms[
-                        String(
-                            roomCode || ""
-                        )
-                            .trim()
-                            .toUpperCase()
-                    ];
+                    rooms[code];
 
 
                 if (
@@ -3445,7 +3668,7 @@ io.on(
                         card;
 
 
-                    io.to(roomCode).emit(
+                    io.to(code).emit(
                         "memoryCardFlipped",
                         {
                             cardId:
@@ -3469,7 +3692,7 @@ io.on(
                     true;
 
 
-                io.to(roomCode).emit(
+                io.to(code).emit(
                     "memoryCardFlipped",
                     {
                         cardId:
@@ -3495,10 +3718,20 @@ io.on(
                     );
 
 
+                if (!player) {
+
+                    room.memoryLocked =
+                        false;
+
+                    return;
+
+                }
+
+
                 if (
-    first.symbol ===
-    second.symbol
-) {
+                    first.symbol ===
+                    second.symbol
+                ) {
 
                     first.matched =
                         true;
@@ -3511,7 +3744,7 @@ io.on(
                         1000;
 
 
-                    io.to(roomCode).emit(
+                    io.to(code).emit(
                         "memoryMatch",
                         {
                             firstId:
@@ -3527,7 +3760,7 @@ io.on(
 
 
                     sendScores(
-                        roomCode
+                        code
                     );
 
 
@@ -3554,7 +3787,7 @@ io.on(
                     ) {
 
                         finishMemoryGame(
-                            roomCode
+                            code
                         );
 
                     }
@@ -3565,7 +3798,14 @@ io.on(
                         setTimeout(
                             () => {
 
-                                io.to(roomCode).emit(
+                                if (
+                                    !rooms[code]
+                                ) {
+                                    return;
+                                }
+
+
+                                io.to(code).emit(
                                     "memoryMismatch",
                                     {
                                         firstId:
@@ -3602,11 +3842,13 @@ io.on(
 
 
                                 room.memoryTurnIndex =
-                                    currentIndex + 1;
+                                    currentIndex >= 0
+                                        ? currentIndex + 1
+                                        : 0;
 
 
                                 moveToNextMemoryPlayer(
-                                    roomCode
+                                    code
                                 );
 
                             },
@@ -3630,19 +3872,15 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
                 const code =
-                    String(
-                        roomCode || ""
-                    )
-                        .trim()
-                        .toUpperCase();
+                    normalizeRoomCode(
+                        roomCode
+                    );
 
 
                 const room =
@@ -3669,27 +3907,22 @@ io.on(
                 }
 
 
+                const wasHost =
+                    room.hostPlayerId ===
+                    playerId;
+
+
                 room.players.splice(
                     playerIndex,
                     1
                 );
 
 
-                if (
-                    room.hostPlayerId ===
-                    playerId
-                ) {
+                if (wasHost) {
 
-                    const nextHost =
-                        getConnectedPlayers(
-                            room
-                        )[0];
-
-
-                    room.hostPlayerId =
-                        nextHost
-                            ? nextHost.id
-                            : null;
+                    assignNewHost(
+                        code
+                    );
 
                 }
 
@@ -3735,19 +3968,15 @@ io.on(
             data => {
 
                 const {
-
                     roomCode,
                     playerId
-
                 } = data || {};
 
 
                 const code =
-                    String(
-                        roomCode || ""
-                    )
-                        .trim()
-                        .toUpperCase();
+                    normalizeRoomCode(
+                        roomCode
+                    );
 
 
                 const room =
@@ -3797,13 +4026,31 @@ io.on(
                 room.questionSet =
                     [];
 
+                room.questionAnswers =
+                    {};
+
+                room.questionActive =
+                    false;
+
 
                 room.scrambleWords =
                     [];
 
+                room.currentScrambleWord =
+                    null;
+
+                room.scrambleAnswered =
+                    {};
+
 
                 room.puzzleSet =
                     [];
+
+                room.currentPuzzle =
+                    null;
+
+                room.puzzleAnswers =
+                    {};
 
 
                 room.bingoCards =
@@ -3818,6 +4065,12 @@ io.on(
 
                 room.memoryBoard =
                     [];
+
+                room.memoryTurnIndex =
+                    0;
+
+                room.memoryTurnPlayerId =
+                    null;
 
                 room.memoryFirstCard =
                     null;
@@ -3946,6 +4199,9 @@ io.on(
                             }
 
 
+                            // Player reconnected
+                            // during grace period.
+
                             if (
                                 currentPlayer.connected
                             ) {
@@ -3953,47 +4209,24 @@ io.on(
                             }
 
 
+                            const wasHost =
+                                currentRoom.hostPlayerId ===
+                                currentPlayer.id;
+
+
                             currentRoom.players =
                                 currentRoom.players.filter(
                                     item =>
                                         item.id !==
-                                        player.id
+                                        currentPlayer.id
                                 );
 
 
-                            if (
-                                currentRoom.hostPlayerId ===
-                                player.id
-                            ) {
+                            if (wasHost) {
 
-                                const nextHost =
-                                    getConnectedPlayers(
-                                        currentRoom
-                                    )[0];
-
-
-                                currentRoom.hostPlayerId =
-                                    nextHost
-                                        ? nextHost.id
-                                        : null;
-
-
-                                if (nextHost) {
-
-                                    io.to(
-                                        roomCode
-                                    ).emit(
-                                        "hostChanged",
-                                        {
-                                            hostPlayerId:
-                                                nextHost.id,
-
-                                            hostName:
-                                                nextHost.name
-                                        }
-                                    );
-
-                                }
+                                assignNewHost(
+                                    roomCode
+                                );
 
                             }
 
@@ -4026,7 +4259,6 @@ io.on(
                             sendScores(
                                 roomCode
                             );
-
 
                         },
                         DISCONNECT_GRACE_PERIOD
