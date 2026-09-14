@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,150 +64,269 @@
         </p>
 
 
-        <div class="setup-icon">
+        <div
+            class="setup-icon"
+            id="setupIcon"
+        >
             🎯
         </div>
 
 
-        <h1>
+        <h1 id="setupTitle">
             Quiz Arena
         </h1>
 
 
-        <p>
-            Set up your quiz before
+        <p id="setupDescription">
+            Set up your game before
             inviting everyone in.
         </p>
 
 
 
-        <!-- CATEGORY -->
+        <!-- PLAYER NAME -->
 
         <div class="form-group">
 
-            <label for="category">
-                Category
+            <label for="playerName">
+                Your name
             </label>
 
 
-            <select id="category">
+            <input
+                type="text"
+                id="playerName"
+                placeholder="Enter your name"
+                maxlength="20"
+                autocomplete="name"
+            >
 
-                <option value="random">
-                    Random Mix
-                </option>
 
-                <option value="general">
-                    General Knowledge
-                </option>
-
-                <option value="africa">
-                    African Culture
-                </option>
-
-                <option value="nigeria">
-                    Nigeria
-                </option>
-
-                <option value="entertainment">
-                    Entertainment
-                </option>
-
-                <option value="sports">
-                    Sports
-                </option>
-
-                <option value="science">
-                    Science
-                </option>
-
-                <option value="food">
-                    Food
-                </option>
-
-            </select>
+            <small>
+                This is the name other players will see.
+            </small>
 
         </div>
 
 
 
-        <!-- DIFFICULTY -->
+        <!-- QUIZ SETTINGS -->
 
-        <div class="form-group">
-
-            <label for="difficulty">
-                Difficulty
-            </label>
+        <div id="quizSettings">
 
 
-            <select id="difficulty">
+            <!-- CATEGORY -->
 
-                <option value="mixed">
-                    Mixed
-                </option>
+            <div class="form-group">
 
-                <option value="easy">
-                    Easy
-                </option>
+                <label for="category">
+                    Category
+                </label>
 
-                <option value="medium">
-                    Medium
-                </option>
 
-                <option value="hard">
-                    Hard
-                </option>
+                <select id="category">
 
-            </select>
+                    <option value="random">
+                        Random Mix
+                    </option>
+
+                    <option value="general">
+                        General Knowledge
+                    </option>
+
+                    <option value="africa">
+                        African Culture
+                    </option>
+
+                    <option value="nigeria">
+                        Nigeria
+                    </option>
+
+                    <option value="entertainment">
+                        Entertainment
+                    </option>
+
+                    <option value="sports">
+                        Sports
+                    </option>
+
+                    <option value="science">
+                        Science
+                    </option>
+
+                    <option value="food">
+                        Food
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- DIFFICULTY -->
+
+            <div class="form-group">
+
+                <label for="difficulty">
+                    Difficulty
+                </label>
+
+
+                <select id="difficulty">
+
+                    <option value="mixed">
+                        Mixed
+                    </option>
+
+                    <option value="easy">
+                        Easy
+                    </option>
+
+                    <option value="medium">
+                        Medium
+                    </option>
+
+                    <option value="hard">
+                        Hard
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- NUMBER OF QUESTIONS -->
+
+            <div class="form-group">
+
+                <label>
+                    Number of questions
+                </label>
+
+
+                <div class="question-options">
+
+                    <button
+                        type="button"
+                        class="question-option"
+                        data-count="5"
+                    >
+                        5
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="question-option active"
+                        data-count="10"
+                    >
+                        10
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="question-option"
+                        data-count="15"
+                    >
+                        15
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="question-option"
+                        data-count="20"
+                    >
+                        20
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
 
 
-        <!-- NUMBER OF QUESTIONS -->
+        <!-- NON-QUIZ SETTINGS -->
 
-        <div class="form-group">
+        <div
+            id="generalSettings"
+            style="display: none;"
+        >
 
-            <label>
-                Number of questions
-            </label>
+            <div class="form-group">
 
-
-            <div class="question-options">
-
-                <button
-                    type="button"
-                    class="question-option"
-                    data-count="5"
-                >
-                    5
-                </button>
+                <label for="gameDifficulty">
+                    Difficulty
+                </label>
 
 
-                <button
-                    type="button"
-                    class="question-option active"
-                    data-count="10"
-                >
-                    10
-                </button>
+                <select id="gameDifficulty">
+
+                    <option value="easy">
+                        Easy
+                    </option>
+
+                    <option
+                        value="medium"
+                        selected
+                    >
+                        Medium
+                    </option>
+
+                    <option value="hard">
+                        Hard
+                    </option>
+
+                </select>
+
+            </div>
 
 
-                <button
-                    type="button"
-                    class="question-option"
-                    data-count="15"
-                >
-                    15
-                </button>
+
+            <div
+                class="form-group"
+                id="roundSettings"
+            >
+
+                <label>
+                    Number of rounds
+                </label>
 
 
-                <button
-                    type="button"
-                    class="question-option"
-                    data-count="20"
-                >
-                    20
-                </button>
+                <div class="question-options">
+
+                    <button
+                        type="button"
+                        class="question-option"
+                        data-rounds="5"
+                    >
+                        5
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="question-option active"
+                        data-rounds="10"
+                    >
+                        10
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="question-option"
+                        data-rounds="15"
+                    >
+                        15
+                    </button>
+
+                </div>
 
             </div>
 
@@ -218,10 +338,16 @@
 
         <button
             id="createRoomButton"
-            onclick="createRoom()"
+            type="button"
         >
             Create Room
         </button>
+
+
+        <p
+            id="setupError"
+            class="answer-message"
+        ></p>
 
 
         <a
@@ -249,3 +375,4 @@
 
 </body>
 </html>
+```
