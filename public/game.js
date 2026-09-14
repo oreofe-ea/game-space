@@ -129,7 +129,7 @@ function showGameMode(type) {
 
     document.title = `${titles[gameType] || "Game Space"} | Game Space`;
 
-    const eyebrow = document.querySelector(".game-eyebrow");
+    const eyebrow = document.getElementById("gameEyebrow");
 
     if (eyebrow) {
         eyebrow.textContent = titles[gameType] || "Game Space";
