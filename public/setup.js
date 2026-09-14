@@ -1,39 +1,56 @@
-```javascript
+// ========================================
+// GAME SPACE
+// GAME SETUP
+// ========================================
+
 const socket = io();
 
 
-// =========================================================
-// GAME TYPE
-// =========================================================
+// ========================================
+// READ GAME TYPE FROM URL
+// ========================================
 
 const params = new URLSearchParams(
     window.location.search
 );
 
+const requestedGame =
+    (params.get("game") || "quiz").toLowerCase();
+
+
+// Only allow games that actually exist
+const validGames = [
+    "quiz",
+    "puzzle",
+    "bingo",
+    "memory",
+    "scramble"
+];
+
 const gameType =
-    params.get("game") || "quiz";
+    validGames.includes(requestedGame)
+        ? requestedGame
+        : "quiz";
 
 
-// =========================================================
+// ========================================
 // PLAYER ID
-// =========================================================
+// ========================================
 
 function getPlayerId() {
 
     let playerId =
-        localStorage.getItem(
-            "playerId"
-        );
+        localStorage.getItem("playerId");
 
     if (!playerId) {
 
         if (
             window.crypto &&
-            typeof crypto.randomUUID === "function"
+            typeof window.crypto.randomUUID === "function"
         ) {
 
             playerId =
-                crypto.randomUUID();
+                window.crypto.randomUUID();
 
         } else {
 
@@ -60,178 +77,185 @@ const playerId =
     getPlayerId();
 
 
-// =========================================================
+// ========================================
 // GAME INFORMATION
-// =========================================================
+// ========================================
 
 const gameInfo = {
 
     quiz: {
-
         title: "Quiz Arena",
-
         icon: "🎯",
-
         description:
             "Set up your quiz before inviting everyone in."
-
     },
 
     puzzle: {
-
         title: "Puzzle Rush",
-
         icon: "🧩",
-
         description:
             "Set up your challenge before inviting everyone in."
-
     },
 
     bingo: {
-
         title: "Bingo",
-
         icon: "🎱",
-
         description:
             "Get your card ready and invite everyone in."
-
     },
 
     memory: {
-
         title: "Memory Match",
-
         icon: "🧠",
-
         description:
             "Set up your memory challenge before inviting everyone in."
-
     },
 
     scramble: {
-
         title: "Word Scramble",
-
         icon: "🔤",
-
         description:
             "Set up your word challenge before inviting everyone in."
-
     }
 
 };
 
 
 const selectedGame =
-    gameInfo[gameType] ||
-    gameInfo.quiz;
+    gameInfo[gameType];
 
 
-// =========================================================
+// ========================================
 // DOM ELEMENTS
-// =========================================================
+// ========================================
 
 const setupIcon =
-    document.getElementById(
-        "setupIcon"
-    );
+    document.getElementById("setupIcon");
 
 const setupTitle =
-    document.getElementById(
-        "setupTitle"
-    );
+    document.getElementById("setupTitle");
 
 const setupDescription =
-    document.getElementById(
-        "setupDescription"
-    );
+    document.getElementById("setupDescription");
 
 const playerNameInput =
-    document.getElementById(
-        "playerName"
-    );
+    document.getElementById("playerName");
 
 const quizSettings =
-    document.getElementById(
-        "quizSettings"
-    );
+    document.getElementById("quizSettings");
 
 const generalSettings =
-    document.getElementById(
-        "generalSettings"
-    );
+    document.getElementById("generalSettings");
 
 const gameDifficulty =
-    document.getElementById(
-        "gameDifficulty"
-    );
+    document.getElementById("gameDifficulty");
 
 const createRoomButton =
-    document.getElementById(
-        "createRoomButton"
-    );
+    document.getElementById("createRoomButton");
 
 const setupError =
-    document.getElementById(
-        "setupError"
-    );
+    document.getElementById("setupError");
 
 
-// =========================================================
-// SETUP PAGE
-// =========================================================
+// ========================================
+// INITIAL STATE
+// ========================================
+
+let questionCount = 10;
+
+let roundCount = 10;
+
+let creatingRoom = false;
+
+
+// ========================================
+// CONFIGURE PAGE
+// ========================================
 
 function configureSetupPage() {
 
-    setupIcon.textContent =
-        selectedGame.icon;
+    if (setupIcon) {
 
-    setupTitle.textContent =
-        selectedGame.title;
+        setupIcon.textContent =
+            selectedGame.icon;
+    }
 
-    setupDescription.textContent =
-        selectedGame.description;
+
+    if (setupTitle) {
+
+        setupTitle.textContent =
+            selectedGame.title;
+    }
+
+
+    if (setupDescription) {
+
+        setupDescription.textContent =
+            selectedGame.description;
+    }
 
 
     document.title =
         `${selectedGame.title} Setup | Game Space`;
 
 
+    // ------------------------------------
+    // QUIZ
+    // ------------------------------------
+
     if (gameType === "quiz") {
 
+        if (quizSettings) {
+
+            quizSettings.style.display =
+                "block";
+        }
+
+
+        if (generalSettings) {
+
+            generalSettings.style.display =
+                "none";
+        }
+
+        return;
+    }
+
+
+    // ------------------------------------
+    // OTHER GAMES
+    // ------------------------------------
+
+    if (quizSettings) {
+
         quizSettings.style.display =
-            "block";
-
-        generalSettings.style.display =
             "none";
+    }
 
-    } else {
 
-        quizSettings.style.display =
-            "none";
+    if (generalSettings) {
 
         generalSettings.style.display =
             "block";
     }
 
 
-    /*
-        Bingo does not need difficulty
-        or rounds, so hide those controls.
-    */
+    const difficultyGroup =
+        gameDifficulty
+            ? gameDifficulty.closest(".form-group")
+            : null;
+
+    const roundSettings =
+        document.getElementById(
+            "roundSettings"
+        );
+
+
+    // ------------------------------------
+    // BINGO
+    // ------------------------------------
 
     if (gameType === "bingo") {
-
-        const difficultyGroup =
-            gameDifficulty
-                .closest(".form-group");
-
-        const roundSettings =
-            document.getElementById(
-                "roundSettings"
-            );
 
         if (difficultyGroup) {
 
@@ -239,31 +263,55 @@ function configureSetupPage() {
                 "none";
         }
 
+
         if (roundSettings) {
 
             roundSettings.style.display =
                 "none";
         }
+
+        return;
     }
 
 
-    /*
-        Memory uses difficulty but does
-        not need a round selector.
-    */
+    // ------------------------------------
+    // MEMORY
+    // ------------------------------------
 
     if (gameType === "memory") {
 
-        const roundSettings =
-            document.getElementById(
-                "roundSettings"
-            );
+        if (difficultyGroup) {
+
+            difficultyGroup.style.display =
+                "block";
+        }
+
 
         if (roundSettings) {
 
             roundSettings.style.display =
                 "none";
         }
+
+        return;
+    }
+
+
+    // ------------------------------------
+    // PUZZLE / SCRAMBLE
+    // ------------------------------------
+
+    if (difficultyGroup) {
+
+        difficultyGroup.style.display =
+            "block";
+    }
+
+
+    if (roundSettings) {
+
+        roundSettings.style.display =
+            "block";
     }
 }
 
@@ -271,29 +319,49 @@ function configureSetupPage() {
 configureSetupPage();
 
 
-// =========================================================
-// PLAYER NAME
-// =========================================================
+// ========================================
+// RESTORE PLAYER NAME
+// ========================================
 
 const savedPlayerName =
-    localStorage.getItem(
-        "playerName"
-    );
+    localStorage.getItem("playerName");
 
 
-if (savedPlayerName) {
+if (
+    savedPlayerName &&
+    playerNameInput
+) {
 
     playerNameInput.value =
         savedPlayerName;
 }
 
 
-// =========================================================
-// QUIZ QUESTION COUNT
-// =========================================================
+// ========================================
+// RESTORE QUIZ SETTINGS
+// ========================================
 
-let questionCount = 10;
+const savedQuestionCount =
+    Number(
+        localStorage.getItem(
+            "quizQuestionCount"
+        )
+    );
 
+
+if (
+    savedQuestionCount >= 5 &&
+    savedQuestionCount <= 20
+) {
+
+    questionCount =
+        savedQuestionCount;
+}
+
+
+// ========================================
+// SELECT QUIZ QUESTION BUTTON
+// ========================================
 
 const questionButtons =
     document.querySelectorAll(
@@ -301,46 +369,69 @@ const questionButtons =
     );
 
 
+function updateQuestionButtons() {
+
+    questionButtons.forEach(
+        (button) => {
+
+            const count =
+                Number(
+                    button.dataset.count
+                );
+
+
+            button.classList.toggle(
+                "active",
+                count === questionCount
+            );
+        }
+    );
+}
+
+
 questionButtons.forEach(
     (button) => {
 
         button.addEventListener(
             "click",
-            () => {
+            (event) => {
 
-                questionButtons.forEach(
-                    (item) => {
-
-                        item.classList.remove(
-                            "active"
-                        );
-
-                    }
-                );
+                event.preventDefault();
 
 
-                button.classList.add(
-                    "active"
-                );
-
-
-                questionCount =
+                const selectedCount =
                     Number(
                         button.dataset.count
                     );
+
+
+                if (
+                    !Number.isFinite(
+                        selectedCount
+                    )
+                ) {
+
+                    return;
+                }
+
+
+                questionCount =
+                    selectedCount;
+
+
+                updateQuestionButtons();
             }
         );
-
     }
 );
 
 
-// =========================================================
-// NON-QUIZ ROUND COUNT
-// =========================================================
+updateQuestionButtons();
 
-let roundCount = 10;
 
+// ========================================
+// SELECT NON-QUIZ ROUND BUTTON
+// ========================================
 
 const roundButtons =
     document.querySelectorAll(
@@ -348,45 +439,122 @@ const roundButtons =
     );
 
 
+function updateRoundButtons() {
+
+    roundButtons.forEach(
+        (button) => {
+
+            const rounds =
+                Number(
+                    button.dataset.rounds
+                );
+
+
+            button.classList.toggle(
+                "active",
+                rounds === roundCount
+            );
+        }
+    );
+}
+
+
 roundButtons.forEach(
     (button) => {
 
         button.addEventListener(
             "click",
-            () => {
+            (event) => {
 
-                roundButtons.forEach(
-                    (item) => {
-
-                        item.classList.remove(
-                            "active"
-                        );
-
-                    }
-                );
+                event.preventDefault();
 
 
-                button.classList.add(
-                    "active"
-                );
-
-
-                roundCount =
+                const selectedRounds =
                     Number(
                         button.dataset.rounds
                     );
+
+
+                if (
+                    !Number.isFinite(
+                        selectedRounds
+                    )
+                ) {
+
+                    return;
+                }
+
+
+                roundCount =
+                    selectedRounds;
+
+
+                updateRoundButtons();
             }
         );
-
     }
 );
 
 
-// =========================================================
-// NAME VALIDATION
-// =========================================================
+updateRoundButtons();
+
+
+// ========================================
+// ERROR MESSAGE
+// ========================================
+
+function showError(message) {
+
+    if (!setupError) {
+        alert(message);
+        return;
+    }
+
+
+    setupError.textContent =
+        message;
+
+
+    setupError.classList.add(
+        "error"
+    );
+}
+
+
+// ========================================
+// CLEAR ERROR
+// ========================================
+
+function clearError() {
+
+    if (!setupError) {
+        return;
+    }
+
+
+    setupError.textContent = "";
+
+    setupError.classList.remove(
+        "error"
+    );
+}
+
+
+// ========================================
+// GET PLAYER NAME
+// ========================================
 
 function getPlayerName() {
+
+    if (!playerNameInput) {
+
+        showError(
+            "Player name field could not be found."
+        );
+
+        return null;
+    }
+
 
     const name =
         playerNameInput.value.trim();
@@ -432,91 +600,42 @@ function getPlayerName() {
 }
 
 
-// =========================================================
-// ERROR MESSAGE
-// =========================================================
+// ========================================
+// BUILD GAME SETTINGS
+// ========================================
 
-function showError(message) {
+function buildGameSettings() {
 
-    setupError.textContent =
-        message;
-
-    setupError.classList.add(
-        "error"
-    );
-
-
-    setTimeout(
-        () => {
-
-            setupError.textContent = "";
-
-            setupError.classList.remove(
-                "error"
-            );
-
-        },
-        3500
-    );
-}
-
-
-// =========================================================
-// CREATE ROOM
-// =========================================================
-
-function createRoom() {
-
-    const name =
-        getPlayerName();
-
-
-    if (!name) {
-
-        return;
-    }
-
-
-    /*
-        Save the name immediately.
-
-        This means the same name will be
-        available across Game Space.
-    */
-
-    localStorage.setItem(
-        "playerName",
-        name
-    );
-
-
-    let settings = {};
-
-
-
-    // =====================================================
-    // QUIZ SETTINGS
-    // =====================================================
+    // ------------------------------------
+    // QUIZ
+    // ------------------------------------
 
     if (gameType === "quiz") {
 
+        const categoryElement =
+            document.getElementById(
+                "category"
+            );
+
+        const difficultyElement =
+            document.getElementById(
+                "difficulty"
+            );
+
+
         const category =
-            document
-                .getElementById(
-                    "category"
-                )
-                .value;
+            categoryElement
+                ? categoryElement.value
+                : "random";
 
 
         const difficulty =
-            document
-                .getElementById(
-                    "difficulty"
-                )
-                .value;
+            difficultyElement
+                ? difficultyElement.value
+                : "mixed";
 
 
-        settings = {
+        return {
 
             category:
                 category,
@@ -526,102 +645,111 @@ function createRoom() {
 
             questionCount:
                 questionCount
-
         };
-
-
-        localStorage.setItem(
-            "quizCategory",
-            category
-        );
-
-
-        localStorage.setItem(
-            "quizDifficulty",
-            difficulty
-        );
-
-
-        localStorage.setItem(
-            "quizQuestionCount",
-            questionCount
-        );
-
     }
 
 
-
-    // =====================================================
-    // PUZZLE RUSH
-    // =====================================================
-
-    else if (gameType === "puzzle") {
-
-        settings = {
-
-            difficulty:
-                gameDifficulty.value,
-
-            roundCount:
-                roundCount
-
-        };
-
-    }
-
-
-
-    // =====================================================
-    // WORD SCRAMBLE
-    // =====================================================
-
-    else if (gameType === "scramble") {
-
-        settings = {
-
-            difficulty:
-                gameDifficulty.value,
-
-            roundCount:
-                roundCount
-
-        };
-
-    }
-
-
-
-    // =====================================================
-    // MEMORY MATCH
-    // =====================================================
-
-    else if (gameType === "memory") {
-
-        settings = {
-
-            difficulty:
-                gameDifficulty.value
-
-        };
-
-    }
-
-
-
-    // =====================================================
+    // ------------------------------------
     // BINGO
-    // =====================================================
+    // ------------------------------------
 
-    else if (gameType === "bingo") {
+    if (gameType === "bingo") {
 
-        settings = {};
-
+        return {};
     }
 
 
-    // =====================================================
-    // SAVE GAME TYPE
-    // =====================================================
+    // ------------------------------------
+    // MEMORY
+    // ------------------------------------
+
+    if (gameType === "memory") {
+
+        return {
+
+            difficulty:
+                gameDifficulty
+                    ? gameDifficulty.value
+                    : "medium"
+        };
+    }
+
+
+    // ------------------------------------
+    // PUZZLE
+    // ------------------------------------
+
+    if (gameType === "puzzle") {
+
+        return {
+
+            difficulty:
+                gameDifficulty
+                    ? gameDifficulty.value
+                    : "medium",
+
+            roundCount:
+                roundCount
+        };
+    }
+
+
+    // ------------------------------------
+    // SCRAMBLE
+    // ------------------------------------
+
+    if (gameType === "scramble") {
+
+        return {
+
+            difficulty:
+                gameDifficulty
+                    ? gameDifficulty.value
+                    : "medium",
+
+            roundCount:
+                roundCount
+        };
+    }
+
+
+    return {};
+}
+
+
+// ========================================
+// CREATE ROOM
+// ========================================
+
+function createRoom() {
+
+    if (creatingRoom) {
+        return;
+    }
+
+
+    clearError();
+
+
+    const name =
+        getPlayerName();
+
+
+    if (!name) {
+        return;
+    }
+
+
+    const settings =
+        buildGameSettings();
+
+
+    // Save player information
+    localStorage.setItem(
+        "playerName",
+        name
+    );
+
 
     localStorage.setItem(
         "gameType",
@@ -629,20 +757,63 @@ function createRoom() {
     );
 
 
-    // =====================================================
-    // DISABLE BUTTON
-    // =====================================================
+    // Save quiz preferences
+    if (gameType === "quiz") {
 
-    createRoomButton.disabled =
+        localStorage.setItem(
+            "quizCategory",
+            settings.category
+        );
+
+
+        localStorage.setItem(
+            "quizDifficulty",
+            settings.difficulty
+        );
+
+
+        localStorage.setItem(
+            "quizQuestionCount",
+            settings.questionCount
+        );
+    }
+
+
+    // Make sure Socket.IO is connected
+    if (!socket.connected) {
+
+        showError(
+            "Connecting to Game Space... Please try again in a moment."
+        );
+
+        return;
+    }
+
+
+    creatingRoom =
         true;
 
-    createRoomButton.textContent =
-        "Creating Room...";
+
+    if (createRoomButton) {
+
+        createRoomButton.disabled =
+            true;
+
+        createRoomButton.textContent =
+            "Creating Room...";
+    }
 
 
-    // =====================================================
-    // CREATE ROOM
-    // =====================================================
+    console.log(
+        "Creating Game Space room:",
+        {
+            playerId,
+            playerName: name,
+            gameType,
+            settings
+        }
+    );
+
 
     socket.emit(
         "createRoom",
@@ -659,54 +830,114 @@ function createRoom() {
 
             settings:
                 settings
-
         }
     );
 }
 
 
-// =========================================================
+// ========================================
 // CREATE BUTTON
-// =========================================================
+// ========================================
 
-createRoomButton.addEventListener(
-    "click",
-    createRoom
-);
+if (createRoomButton) {
+
+    createRoomButton.addEventListener(
+        "click",
+        createRoom
+    );
+}
 
 
-// =========================================================
+// ========================================
 // ENTER KEY
-// =========================================================
+// ========================================
 
-playerNameInput.addEventListener(
-    "keydown",
-    (event) => {
+if (playerNameInput) {
 
-        if (
-            event.key === "Enter"
-        ) {
+    playerNameInput.addEventListener(
+        "keydown",
+        (event) => {
 
-            event.preventDefault();
+            if (
+                event.key === "Enter"
+            ) {
 
-            createRoom();
+                event.preventDefault();
+
+                createRoom();
+            }
         }
+    );
+}
 
-    }
-);
 
-
-// =========================================================
+// ========================================
 // ROOM CREATED
-// =========================================================
+// ========================================
 
 socket.on(
     "roomCreated",
-    ({
-        roomCode,
-        gameType: createdGameType,
-        playerId: returnedPlayerId
-    }) => {
+    (data) => {
+
+        console.log(
+            "Room created:",
+            data
+        );
+
+
+        if (!data) {
+
+            showError(
+                "The server returned an invalid room."
+            );
+
+            creatingRoom = false;
+
+            if (createRoomButton) {
+
+                createRoomButton.disabled =
+                    false;
+
+                createRoomButton.textContent =
+                    "Create Room";
+            }
+
+            return;
+        }
+
+
+        const roomCode =
+            data.roomCode;
+
+
+        const createdGameType =
+            data.gameType || gameType;
+
+
+        const returnedPlayerId =
+            data.playerId || playerId;
+
+
+        if (!roomCode) {
+
+            showError(
+                "The room was created, but no room code was returned."
+            );
+
+            creatingRoom = false;
+
+            if (createRoomButton) {
+
+                createRoomButton.disabled =
+                    false;
+
+                createRoomButton.textContent =
+                    "Create Room";
+            }
+
+            return;
+        }
+
 
         localStorage.setItem(
             "roomCode",
@@ -726,32 +957,98 @@ socket.on(
         );
 
 
+        // Go to the existing lobby.
         window.location.href =
-            `/lobby.html?room=${roomCode}`;
-
+            `/lobby.html?room=${encodeURIComponent(roomCode)}`;
     }
 );
 
 
-// =========================================================
-// ERRORS
-// =========================================================
+// ========================================
+// SERVER ERROR
+// ========================================
 
 socket.on(
     "errorMessage",
     (message) => {
 
-        showError(
+        console.error(
+            "Game Space server error:",
             message
         );
 
 
-        createRoomButton.disabled =
+        showError(
+            message ||
+            "Something went wrong while creating the room."
+        );
+
+
+        creatingRoom =
             false;
 
-        createRoomButton.textContent =
-            "Create Room";
 
+        if (createRoomButton) {
+
+            createRoomButton.disabled =
+                false;
+
+            createRoomButton.textContent =
+                "Create Room";
+        }
     }
 );
-```
+
+
+// ========================================
+// CONNECTION ERROR
+// ========================================
+
+socket.on(
+    "connect_error",
+    (error) => {
+
+        console.error(
+            "Game Space connection error:",
+            error
+        );
+
+
+        if (creatingRoom) {
+
+            creatingRoom =
+                false;
+
+
+            if (createRoomButton) {
+
+                createRoomButton.disabled =
+                    false;
+
+                createRoomButton.textContent =
+                    "Create Room";
+            }
+        }
+
+
+        showError(
+            "Could not connect to the Game Space server."
+        );
+    }
+);
+
+
+// ========================================
+// CONNECTION SUCCESS
+// ========================================
+
+socket.on(
+    "connect",
+    () => {
+
+        console.log(
+            "Connected to Game Space:",
+            socket.id
+        );
+    }
+);
