@@ -74,8 +74,9 @@
                 </a>
 
                 <button
+                    type="button"
                     class="secondary"
-                    onclick="showJoin()"
+                    id="joinGameButton"
                 >
                     Join a Game
                 </button>
@@ -105,28 +106,36 @@
             </p>
 
 
-            <input
-                id="playerName"
-                type="text"
-                placeholder="Your name"
-                maxlength="20"
-            >
+            <form id="joinForm">
+
+                <input
+                    id="playerName"
+                    type="text"
+                    placeholder="Your name"
+                    maxlength="20"
+                    autocomplete="name"
+                    required
+                >
 
 
-            <input
-                id="roomCode"
-                type="text"
-                placeholder="Room code"
-                maxlength="6"
-                autocomplete="off"
-            >
+                <input
+                    id="roomCode"
+                    type="text"
+                    placeholder="Room code"
+                    maxlength="6"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    required
+                >
 
 
-            <button
-                onclick="joinGame()"
-            >
-                Join Room
-            </button>
+                <button
+                    type="submit"
+                >
+                    Join Room
+                </button>
+
+            </form>
 
         </section>
 
@@ -139,8 +148,10 @@
     </main>
 
 
+    <!-- SOCKET.IO -->
     <script src="/socket.io/socket.io.js"></script>
 
+    <!-- GAME SPACE APP -->
     <script src="app.js"></script>
 
 </body>
