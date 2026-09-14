@@ -1,1086 +1,1253 @@
 const socket = io();
 
+const params = new URLSearchParams(window.location.search);
 
-/*
-|--------------------------------------------------------------------------
-| URL / PLAYER INFORMATION
-|--------------------------------------------------------------------------
-*/
+const roomCode = params.get("room");
 
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
+let playerId = localStorage.getItem("playerId");
+let playerName = localStorage.getItem("playerName");
+let gameType = localStorage.getItem("gameType") || "quiz";
 
-const roomCode =
-    params.get("room");
-
-const playerId =
-    localStorage.getItem(
-        "playerId"
-    );
-
-const gameType =
-    localStorage.getItem(
-        "gameType"
-    ) || "quiz";
-
-
-/*
-|--------------------------------------------------------------------------
-| GAME STATE
-|--------------------------------------------------------------------------
-*/
-
-let currentQuestion = null;
-
+let currentTimeLimit = 15;
+let currentTimeLeft = 15;
 let timerInterval = null;
 
 let hasAnswered = false;
+let gameActive = false;
 
-let currentTimeLimit = 15;
+// Quiz
+let currentQuestion = null;
 
-let currentTimeLeft = 15;
+// Bingo
+let bingoCardData = [];
+let bingoMarked = new Set();
+let bingoCalledNumbers = [];
 
-
-/*
-|--------------------------------------------------------------------------
-| ELEMENTS
-|--------------------------------------------------------------------------
-*/
-
-const questionElement =
-    document.getElementById(
-        "question"
-    );
-
-const questionNumberElement =
-    document.getElementById(
-        "questionNumber"
-    );
-
-const timerElement =
-    document.getElementById(
-        "timer"
-    );
-
-const timerProgress =
-    document.getElementById(
-        "timerProgress"
-    );
-
-const answerMessage =
-    document.getElementById(
-        "answerMessage"
-    );
-
-const scoreboard =
-    document.getElementById(
-        "scoreboard"
-    );
-
-const resultsNavigation =
-    document.getElementById(
-        "resultsNavigation"
-    );
-
-const playAgainButton =
-    document.getElementById(
-        "playAgainButton"
-    );
-
-const answerButtons =
-    document.querySelectorAll(
-        ".answer"
-    );
+// Memory
+let memoryCards = [];
+let memoryFlipped = [];
+let memoryMatched = new Set();
+let memoryMyTurn = false;
+let memoryLocked = false;
 
 
-/*
-|--------------------------------------------------------------------------
-| GAME READY
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// DOM
+// ============================================================
 
-socket.on(
-    "connect",
-    () => {
+const question = document.getElementById("question");
+const questionNumber = document.getElementById("questionNumber");
 
-        console.log(
-            "Connected to Game Space:",
-            socket.id
-        );
+const timer = document.getElementById("timer");
+const timerProgress = document.getElementById("timerProgress");
+const timerArea = document.getElementById("timerArea");
 
+const answerMessage = document.getElementById("answerMessage");
 
-        socket.emit(
-            "gameReady",
-            {
-                roomCode:
-                    roomCode,
+const scoreboard = document.getElementById("scoreboard");
 
-                playerId:
-                    playerId
-            }
-        );
+const resultsNavigation = document.getElementById("resultsNavigation");
+const playAgainButton = document.getElementById("playAgainButton");
 
-    }
-);
+const quizGame = document.getElementById("quizGame");
+const scrambleGame = document.getElementById("scrambleGame");
+const puzzleGame = document.getElementById("puzzleGame");
+const bingoGame = document.getElementById("bingoGame");
+const memoryGame = document.getElementById("memoryGame");
 
 
-socket.on(
-    "gameReadyConfirmed",
-    () => {
+// Quiz
+const answerButtons = document.querySelectorAll(".answer");
 
-        console.log(
-            "Game page is ready."
-        );
+// Scramble
+const scrambledWord = document.getElementById("scrambledWord");
+const scrambleHint = document.getElementById("scrambleHint");
+const scrambleInput = document.getElementById("scrambleInput");
+const scrambleSubmit = document.getElementById("scrambleSubmit");
 
-    }
-);
+// Puzzle
+const puzzleQuestion = document.getElementById("puzzleQuestion");
+const puzzleAnswers = document.querySelectorAll(".puzzle-answer");
 
+// Bingo
+const bingoCalledNumber = document.getElementById("bingoCalledNumber");
+const bingoCard = document.getElementById("bingoCard");
+const claimBingoButton = document.getElementById("claimBingoButton");
+const bingoHistory = document.getElementById("bingoHistory");
 
-/*
-|--------------------------------------------------------------------------
-| ANSWER BUTTONS
-|--------------------------------------------------------------------------
-*/
-
-answerButtons.forEach(
-    (button) => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const answerIndex =
-                    Number(
-                        button.dataset.index
-                    );
-
-                submitAnswer(
-                    answerIndex,
-                    button
-                );
-
-            }
-        );
-
-    }
-);
+// Memory
+const memoryTurn = document.getElementById("memoryTurn");
+const memoryInstruction = document.getElementById("memoryInstruction");
+const memoryBoard = document.getElementById("memoryBoard");
 
 
-/*
-|--------------------------------------------------------------------------
-| SUBMIT ANSWER
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// BASIC VALIDATION
+// ============================================================
 
-function submitAnswer(
-    answerIndex,
-    selectedButton
-) {
+if (!roomCode) {
+    showError("No room code was provided.");
+}
 
-    if (
-        hasAnswered ||
-        !currentQuestion
-    ) {
-        return;
-    }
-
-
-    hasAnswered =
-        true;
-
-
-    answerButtons.forEach(
-        (button) => {
-
-            button.disabled =
-                true;
-
-        }
-    );
-
-
-    selectedButton.classList.add(
-        "selected-answer"
-    );
-
-
-    socket.emit(
-        "submitAnswer",
-        {
-            roomCode:
-                roomCode,
-
-            playerId:
-                playerId,
-
-            answerIndex:
-                answerIndex
-        }
-    );
-
+if (!playerId) {
+    showError("Your player session could not be found.");
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| NEW QUESTION
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// GAME MODE
+// ============================================================
 
-socket.on(
-    "newQuestion",
-    (question) => {
+function showGameMode(type) {
+    gameType = type || "quiz";
 
-        currentQuestion =
-            question;
+    if (quizGame) quizGame.style.display = "none";
+    if (scrambleGame) scrambleGame.style.display = "none";
+    if (puzzleGame) puzzleGame.style.display = "none";
+    if (bingoGame) bingoGame.style.display = "none";
+    if (memoryGame) memoryGame.style.display = "none";
 
-        hasAnswered =
-            false;
+    const titles = {
+        quiz: "Quiz Arena",
+        scramble: "Word Scramble",
+        puzzle: "Puzzle Rush",
+        bingo: "Bingo",
+        memory: "Memory Match"
+    };
 
+    const target = {
+        quiz: quizGame,
+        scramble: scrambleGame,
+        puzzle: puzzleGame,
+        bingo: bingoGame,
+        memory: memoryGame
+    };
 
-        currentTimeLimit =
-            question.timeLimit;
-
-        currentTimeLeft =
-            question.timeLimit;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RESET ANSWERS
-        |--------------------------------------------------------------------------
-        */
-
-        answerButtons.forEach(
-            (button) => {
-
-                button.disabled =
-                    false;
-
-                button.classList.remove(
-                    "selected-answer"
-                );
-
-                button.classList.remove(
-                    "correct-answer"
-                );
-
-                button.classList.remove(
-                    "wrong-answer"
-                );
-
-                button.style.display =
-                    "flex";
-
-            }
-        );
-
-
-        answerMessage.classList.add(
-            "hidden"
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | QUESTION NUMBER
-        |--------------------------------------------------------------------------
-        */
-
-        questionNumberElement.textContent =
-            `Question ${question.number} of ${question.total}`;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | QUESTION ANIMATION
-        |--------------------------------------------------------------------------
-        */
-
-        questionElement.classList.remove(
-            "question-changing"
-        );
-
-        void questionElement.offsetWidth;
-
-        questionElement.classList.add(
-            "question-changing"
-        );
-
-
-        questionElement.textContent =
-            question.question;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ANSWER OPTIONS
-        |--------------------------------------------------------------------------
-        */
-
-        answerButtons.forEach(
-            (button, index) => {
-
-                button.textContent =
-                    question.answers[index];
-
-                button.classList.remove(
-                    "answer-changing"
-                );
-
-                void button.offsetWidth;
-
-                button.classList.add(
-                    "answer-changing"
-                );
-
-                button.style.animationDelay =
-                    `${index * 0.06}s`;
-
-            }
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TIMER
-        |--------------------------------------------------------------------------
-        */
-
-        startTimer(
-            question.timeLimit
-        );
-
+    if (target[gameType]) {
+        target[gameType].style.display = "";
     }
-);
+
+    document.title = `${titles[gameType] || "Game Space"} | Game Space`;
+
+    const eyebrow = document.querySelector(".game-eyebrow");
+
+    if (eyebrow) {
+        eyebrow.textContent = titles[gameType] || "Game Space";
+    }
+
+    if (questionNumber) {
+        questionNumber.textContent = "";
+    }
+
+    hideTimer();
+
+    clearAnswerMessage();
+}
+
+showGameMode(gameType);
 
 
-/*
-|--------------------------------------------------------------------------
-| TIMER
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// SOCKET CONNECTION
+// ============================================================
 
-function startTimer(
-    seconds
-) {
+socket.on("connect", () => {
+    console.log("Connected to Game Space server.");
 
-    clearInterval(
-        timerInterval
-    );
+    socket.emit("gameReady", {
+        roomCode,
+        playerId
+    });
+});
 
+socket.on("gameReadyConfirmed", (data) => {
+    console.log("Game ready:", data);
+});
 
-    let timeLeft =
-        seconds;
+socket.on("connect_error", (error) => {
+    console.error("Socket connection error:", error);
+    showError("Connection lost. Trying to reconnect...");
+});
 
-
-    currentTimeLimit =
-        seconds;
-
-    currentTimeLeft =
-        seconds;
-
-
-    timerElement.textContent =
-        timeLeft;
+socket.on("disconnect", () => {
+    console.warn("Disconnected from server.");
+    showError("Connection lost. Reconnecting...");
+});
 
 
-    timerElement.classList.remove(
-        "timer-warning"
-    );
+// ============================================================
+// GAME STARTED
+// ============================================================
 
+socket.on("gameStarted", (data) => {
+    console.log("Game started:", data);
+
+    gameActive = true;
+
+    if (data && data.gameType) {
+        showGameMode(data.gameType);
+    }
+
+    if (data && data.settings) {
+        currentTimeLimit =
+            Number(data.settings.timePerQuestion) ||
+            Number(data.settings.timeLimit) ||
+            15;
+    }
+
+    if (resultsNavigation) {
+        resultsNavigation.style.display = "none";
+    }
+
+    clearAnswerMessage();
+
+    memoryLocked = false;
+});
+
+socket.on("gameStarting", (data) => {
+    console.log("Game starting:", data);
+
+    if (data && data.gameType) {
+        showGameMode(data.gameType);
+    }
+
+    if (data && data.countdown) {
+        showMessage(`Starting in ${data.countdown}...`);
+    }
+});
+
+
+// ============================================================
+// TIMER
+// ============================================================
+
+function startTimer(seconds) {
+    stopTimer();
+
+    currentTimeLimit = Number(seconds) || 15;
+    currentTimeLeft = currentTimeLimit;
+
+    if (timerArea) {
+        timerArea.style.display = "";
+    }
+
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+        currentTimeLeft--;
+
+        updateTimerDisplay();
+
+        if (currentTimeLeft <= 0) {
+            stopTimer();
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+function hideTimer() {
+    stopTimer();
+
+    if (timerArea) {
+        timerArea.style.display = "none";
+    }
+}
+
+function updateTimerDisplay() {
+    if (timer) {
+        timer.textContent = Math.max(0, currentTimeLeft);
+    }
 
     if (timerProgress) {
+        const percentage =
+            currentTimeLimit > 0
+                ? (currentTimeLeft / currentTimeLimit) * 100
+                : 0;
 
-        timerProgress.style.transition =
-            "none";
-
-        timerProgress.style.width =
-            "100%";
-
-
-        void timerProgress.offsetWidth;
-
-
-        timerProgress.style.transition =
-            `width ${seconds}s linear`;
-
-        timerProgress.style.width =
-            "0%";
-
+        timerProgress.style.width = `${Math.max(0, percentage)}%`;
     }
 
-
-    timerInterval =
-        setInterval(
-            () => {
-
-                timeLeft--;
-
-                currentTimeLeft =
-                    timeLeft;
-
-
-                timerElement.textContent =
-                    Math.max(
-                        0,
-                        timeLeft
-                    );
-
-
-                if (
-                    timeLeft <= 5 &&
-                    timeLeft > 0
-                ) {
-
-                    timerElement.classList.add(
-                        "timer-warning"
-                    );
-
-                } else {
-
-                    timerElement.classList.remove(
-                        "timer-warning"
-                    );
-
-                }
-
-
-                if (
-                    timeLeft <= 0
-                ) {
-
-                    clearInterval(
-                        timerInterval
-                    );
-
-
-                    timerElement.classList.remove(
-                        "timer-warning"
-                    );
-
-
-                    if (
-                        !hasAnswered
-                    ) {
-
-                        hasAnswered =
-                            true;
-
-
-                        answerButtons.forEach(
-                            (button) => {
-
-                                button.disabled =
-                                    true;
-
-                            }
-                        );
-
-
-                        showAnswerMessage(
-                            "Time's up!",
-                            "timeout"
-                        );
-
-                    }
-
-                }
-
-            },
-            1000
-        );
-
+    if (timer && currentTimeLeft <= 5 && currentTimeLeft > 0) {
+        timer.classList.add("timer-warning");
+    } else if (timer) {
+        timer.classList.remove("timer-warning");
+    }
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| ANSWER RESULT
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// MESSAGE HELPERS
+// ============================================================
 
-socket.on(
-    "answerResult",
-    ({
-        correct,
-        points
-    }) => {
+function showMessage(message, type = "") {
+    if (!answerMessage) return;
 
-        if (correct) {
+    answerMessage.textContent = message;
+    answerMessage.className = "answer-message";
 
-            showAnswerMessage(
-                `Correct! +${points} points 🎉`,
-                "correct"
-            );
+    if (type) {
+        answerMessage.classList.add(type);
+    }
+}
+
+function clearAnswerMessage() {
+    if (!answerMessage) return;
+
+    answerMessage.textContent = "";
+    answerMessage.className = "answer-message";
+}
+
+function showError(message) {
+    showMessage(message, "error");
+}
 
 
-            answerButtons.forEach(
-                (button) => {
+// ============================================================
+// QUIZ ARENA
+// ============================================================
 
-                    if (
-                        button.classList.contains(
-                            "selected-answer"
-                        )
-                    ) {
+socket.on("newQuestion", (data) => {
+    console.log("New question:", data);
 
-                        button.classList.remove(
-                            "selected-answer"
-                        );
+    gameType = "quiz";
+    showGameMode("quiz");
 
-                        button.classList.add(
-                            "correct-answer"
-                        );
+    currentQuestion = data;
+    hasAnswered = false;
 
-                    }
+    if (question) {
+        question.textContent = data.question || "";
+    }
 
-                }
-            );
-
+    if (questionNumber) {
+        if (data.questionNumber && data.totalQuestions) {
+            questionNumber.textContent =
+                `Question ${data.questionNumber} of ${data.totalQuestions}`;
         } else {
-
-            showAnswerMessage(
-                "Not quite!",
-                "wrong"
-            );
-
-
-            answerButtons.forEach(
-                (button) => {
-
-                    if (
-                        button.classList.contains(
-                            "selected-answer"
-                        )
-                    ) {
-
-                        button.classList.remove(
-                            "selected-answer"
-                        );
-
-                        button.classList.add(
-                            "wrong-answer"
-                        );
-
-                    }
-
-                }
-            );
-
+            questionNumber.textContent = "";
         }
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| ANSWER MESSAGE
-|--------------------------------------------------------------------------
-*/
-
-function showAnswerMessage(
-    text,
-    type
-) {
-
-    answerMessage.textContent =
-        text;
-
-
-    answerMessage.classList.remove(
-        "hidden"
-    );
-
-
-    answerMessage.classList.remove(
-        "message-correct"
-    );
-
-    answerMessage.classList.remove(
-        "message-wrong"
-    );
-
-    answerMessage.classList.remove(
-        "message-timeout"
-    );
-
-
-    if (
-        type ===
-        "correct"
-    ) {
-
-        answerMessage.classList.add(
-            "message-correct"
-        );
-
-    } else if (
-        type ===
-        "wrong"
-    ) {
-
-        answerMessage.classList.add(
-            "message-wrong"
-        );
-
-    } else {
-
-        answerMessage.classList.add(
-            "message-timeout"
-        );
-
     }
 
+    answerButtons.forEach((button, index) => {
+        button.disabled = false;
+        button.classList.remove(
+            "selected",
+            "correct",
+            "incorrect",
+            "disabled"
+        );
 
-    answerMessage.classList.remove(
-        "message-pop"
-    );
+        if (data.answers && data.answers[index] !== undefined) {
+            button.textContent = data.answers[index];
+            button.style.display = "";
+        } else {
+            button.textContent = "";
+            button.style.display = "none";
+        }
+    });
 
-    void answerMessage.offsetWidth;
+    clearAnswerMessage();
 
-    answerMessage.classList.add(
-        "message-pop"
-    );
+    const seconds =
+        Number(data.timeLimit) ||
+        Number(data.timeLeft) ||
+        currentTimeLimit ||
+        15;
 
+    startTimer(seconds);
+});
+
+answerButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+        submitQuizAnswer(index);
+    });
+});
+
+function submitQuizAnswer(index) {
+    if (hasAnswered || !gameActive) return;
+
+    hasAnswered = true;
+
+    answerButtons.forEach((button) => {
+        button.disabled = true;
+    });
+
+    answerButtons[index].classList.add("selected");
+
+    socket.emit("submitAnswer", {
+        roomCode,
+        playerId,
+        answerIndex: index
+    });
 }
 
+socket.on("answerResult", (data) => {
+    console.log("Answer result:", data);
 
-/*
-|--------------------------------------------------------------------------
-| SCORE UPDATE
-|--------------------------------------------------------------------------
-*/
-
-socket.on(
-    "scoreUpdate",
-    (players) => {
-
-        renderScoreboard(
-            players
-        );
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| LIVE SCOREBOARD
-|--------------------------------------------------------------------------
-*/
-
-function renderScoreboard(
-    players
-) {
-
-    if (!scoreboard) {
+    if (data.playerId && data.playerId !== playerId) {
         return;
     }
 
+    if (data.correct) {
+        showMessage(
+            `Correct! +${data.points || 0} points`,
+            "correct"
+        );
+    } else {
+        showMessage(
+            data.correctAnswer !== undefined
+                ? `Not quite. The correct answer was ${data.correctAnswer}.`
+                : "Not quite.",
+            "incorrect"
+        );
+    }
+});
 
-    scoreboard.innerHTML =
-        "";
+socket.on("questionEnded", (data) => {
+    stopTimer();
+
+    answerButtons.forEach((button) => {
+        button.disabled = true;
+    });
+});
 
 
-    const sortedPlayers =
-        [...players].sort(
-            (a, b) =>
-                b.score -
-                a.score
+// ============================================================
+// WORD SCRAMBLE
+// ============================================================
+
+socket.on("newScramble", (data) => {
+    console.log("New scramble:", data);
+
+    gameType = "scramble";
+    showGameMode("scramble");
+
+    hasAnswered = false;
+
+    if (scrambledWord) {
+        scrambledWord.textContent = data.scrambled || "";
+    }
+
+    if (scrambleHint) {
+        scrambleHint.textContent = data.hint
+            ? `Hint: ${data.hint}`
+            : "";
+    }
+
+    if (scrambleInput) {
+        scrambleInput.value = "";
+        scrambleInput.disabled = false;
+        scrambleInput.focus();
+    }
+
+    if (scrambleSubmit) {
+        scrambleSubmit.disabled = false;
+    }
+
+    clearAnswerMessage();
+
+    startTimer(
+        Number(data.timeLimit) ||
+        Number(data.timeLeft) ||
+        20
+    );
+});
+
+function submitScrambleAnswer() {
+    if (hasAnswered || !gameActive) return;
+
+    if (!scrambleInput) return;
+
+    const answer = scrambleInput.value.trim();
+
+    if (!answer) {
+        showMessage("Enter an answer first.", "error");
+        return;
+    }
+
+    hasAnswered = true;
+
+    scrambleInput.disabled = true;
+
+    if (scrambleSubmit) {
+        scrambleSubmit.disabled = true;
+    }
+
+    socket.emit("submitScramble", {
+        roomCode,
+        playerId,
+        answer
+    });
+}
+
+if (scrambleSubmit) {
+    scrambleSubmit.addEventListener("click", submitScrambleAnswer);
+}
+
+if (scrambleInput) {
+    scrambleInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            submitScrambleAnswer();
+        }
+    });
+}
+
+socket.on("scrambleResult", (data) => {
+    console.log("Scramble result:", data);
+
+    if (data.playerId && data.playerId !== playerId) {
+        return;
+    }
+
+    if (data.correct) {
+        showMessage(
+            `Correct! +${data.points || 0} points`,
+            "correct"
+        );
+    } else {
+        showMessage(
+            data.message || "That's not correct.",
+            "incorrect"
+        );
+    }
+});
+
+socket.on("scrambleEnded", () => {
+    stopTimer();
+
+    if (scrambleInput) {
+        scrambleInput.disabled = true;
+    }
+
+    if (scrambleSubmit) {
+        scrambleSubmit.disabled = true;
+    }
+});
+
+
+// ============================================================
+// PUZZLE RUSH
+// ============================================================
+
+socket.on("newPuzzle", (data) => {
+    console.log("New puzzle:", data);
+
+    gameType = "puzzle";
+    showGameMode("puzzle");
+
+    hasAnswered = false;
+
+    if (puzzleQuestion) {
+        puzzleQuestion.textContent = data.question || "";
+    }
+
+    puzzleAnswers.forEach((button, index) => {
+        button.disabled = false;
+        button.classList.remove(
+            "selected",
+            "correct",
+            "incorrect"
         );
 
-
-    sortedPlayers.forEach(
-        (player, index) => {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "player score-row";
-
-
-            const position =
-                document.createElement(
-                    "span"
-                );
-
-            position.className =
-                "score-position";
-
-
-            if (index === 0) {
-
-                position.textContent =
-                    "🥇";
-
-            } else if (
-                index === 1
-            ) {
-
-                position.textContent =
-                    "🥈";
-
-            } else if (
-                index === 2
-            ) {
-
-                position.textContent =
-                    "🥉";
-
-            } else {
-
-                position.textContent =
-                    `${index + 1}`;
-
-            }
-
-
-            const name =
-                document.createElement(
-                    "span"
-                );
-
-            name.className =
-                "score-name";
-
-            name.textContent =
-                player.name;
-
-
-            const score =
-                document.createElement(
-                    "span"
-                );
-
-            score.className =
-                "score-value";
-
-            score.textContent =
-                player.score;
-
-
-            row.appendChild(
-                position
-            );
-
-            row.appendChild(
-                name
-            );
-
-            row.appendChild(
-                score
-            );
-
-
-            scoreboard.appendChild(
-                row
-            );
-
+        if (data.answers && data.answers[index] !== undefined) {
+            button.textContent = data.answers[index];
+            button.style.display = "";
+        } else {
+            button.textContent = "";
+            button.style.display = "none";
         }
+    });
+
+    clearAnswerMessage();
+
+    startTimer(
+        Number(data.timeLimit) ||
+        Number(data.timeLeft) ||
+        20
+    );
+});
+
+puzzleAnswers.forEach((button, index) => {
+    button.addEventListener("click", () => {
+        submitPuzzleAnswer(index);
+    });
+});
+
+function submitPuzzleAnswer(index) {
+    if (hasAnswered || !gameActive) return;
+
+    hasAnswered = true;
+
+    puzzleAnswers.forEach((button) => {
+        button.disabled = true;
+    });
+
+    puzzleAnswers[index].classList.add("selected");
+
+    socket.emit("submitPuzzle", {
+        roomCode,
+        playerId,
+        answerIndex: index
+    });
+}
+
+socket.on("puzzleResult", (data) => {
+    console.log("Puzzle result:", data);
+
+    if (data.playerId && data.playerId !== playerId) {
+        return;
+    }
+
+    if (data.correct) {
+        showMessage(
+            `Correct! +${data.points || 0} points`,
+            "correct"
+        );
+    } else {
+        showMessage(
+            data.message || "Incorrect.",
+            "incorrect"
+        );
+    }
+});
+
+socket.on("puzzleEnded", () => {
+    stopTimer();
+
+    puzzleAnswers.forEach((button) => {
+        button.disabled = true;
+    });
+});
+
+
+// ============================================================
+// BINGO
+// ============================================================
+
+socket.on("bingoCard", (data) => {
+    console.log("Bingo card:", data);
+
+    gameType = "bingo";
+    showGameMode("bingo");
+
+    bingoCardData = data.card || data || [];
+    bingoMarked = new Set();
+
+    renderBingoCard();
+
+    if (claimBingoButton) {
+        claimBingoButton.disabled = false;
+    }
+});
+
+socket.on("bingoStarted", (data) => {
+    console.log("Bingo started:", data);
+
+    gameType = "bingo";
+    showGameMode("bingo");
+
+    bingoCalledNumbers = [];
+
+    if (bingoCalledNumber) {
+        bingoCalledNumber.textContent = "READY";
+    }
+
+    if (bingoHistory) {
+        bingoHistory.innerHTML = "";
+    }
+
+    clearAnswerMessage();
+});
+
+socket.on("bingoNumberCalled", (data) => {
+    console.log("Bingo number:", data);
+
+    const number =
+        data.number !== undefined
+            ? data.number
+            : data.calledNumber;
+
+    if (number === undefined) return;
+
+    bingoCalledNumbers.push(number);
+
+    if (bingoCalledNumber) {
+        bingoCalledNumber.textContent = number;
+    }
+
+    renderBingoHistory();
+
+    // Automatically highlight numbers that have been called.
+    markCalledBingoNumbers();
+});
+
+function renderBingoCard() {
+    if (!bingoCard) return;
+
+    bingoCard.innerHTML = "";
+
+    let flatCard = bingoCardData;
+
+    if (
+        Array.isArray(bingoCardData) &&
+        bingoCardData.length === 5 &&
+        Array.isArray(bingoCardData[0])
+    ) {
+        flatCard = bingoCardData.flat();
+    }
+
+    if (!Array.isArray(flatCard)) return;
+
+    flatCard.forEach((value, index) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "bingo-cell";
+        button.dataset.index = index;
+        button.dataset.number = value;
+
+        if (index === 12 && String(value).toUpperCase() === "FREE") {
+            button.textContent = "FREE";
+            button.classList.add("free", "marked");
+            bingoMarked.add(index);
+        } else {
+            button.textContent = value;
+
+            button.addEventListener("click", () => {
+                if (button.classList.contains("called")) {
+                    button.classList.toggle("marked");
+
+                    if (button.classList.contains("marked")) {
+                        bingoMarked.add(index);
+                    } else {
+                        bingoMarked.delete(index);
+                    }
+                }
+            });
+        }
+
+        bingoCard.appendChild(button);
+    });
+
+    markCalledBingoNumbers();
+}
+
+function markCalledBingoNumbers() {
+    if (!bingoCard) return;
+
+    const cells = bingoCard.querySelectorAll(".bingo-cell");
+
+    cells.forEach((cell) => {
+        const number = Number(cell.dataset.number);
+
+        if (
+            bingoCalledNumbers.some(
+                (called) => Number(called) === number
+            )
+        ) {
+            cell.classList.add("called");
+        }
+    });
+}
+
+function renderBingoHistory() {
+    if (!bingoHistory) return;
+
+    bingoHistory.innerHTML = "";
+
+    bingoCalledNumbers
+        .slice()
+        .reverse()
+        .slice(0, 12)
+        .forEach((number) => {
+            const item = document.createElement("span");
+
+            item.className = "bingo-history-number";
+            item.textContent = number;
+
+            bingoHistory.appendChild(item);
+        });
+}
+
+if (claimBingoButton) {
+    claimBingoButton.addEventListener("click", () => {
+        if (!gameActive) return;
+
+        claimBingoButton.disabled = true;
+
+        socket.emit("claimBingo", {
+            roomCode,
+            playerId
+        });
+    });
+}
+
+socket.on("bingoResult", (data) => {
+    console.log("Bingo result:", data);
+
+    if (data.playerId && data.playerId !== playerId) {
+        return;
+    }
+
+    if (data.valid || data.correct || data.success) {
+        showMessage(
+            data.message || "BINGO! Your card is valid.",
+            "correct"
+        );
+    } else {
+        showMessage(
+            data.message || "Not a winning card yet.",
+            "incorrect"
+        );
+
+        if (claimBingoButton) {
+            claimBingoButton.disabled = false;
+        }
+    }
+});
+
+socket.on("bingoWinner", (data) => {
+    console.log("Bingo winner:", data);
+
+    if (data.playerId === playerId) {
+        showMessage(
+            "BINGO! You won!",
+            "correct"
+        );
+    } else {
+        showMessage(
+            `${data.playerName || "Another player"} got BINGO!`,
+            "correct"
+        );
+    }
+
+    if (claimBingoButton) {
+        claimBingoButton.disabled = true;
+    }
+});
+
+
+// ============================================================
+// MEMORY MATCH
+// ============================================================
+
+socket.on("memoryStarted", (data) => {
+    console.log("Memory game started:", data);
+
+    gameType = "memory";
+    showGameMode("memory");
+
+    memoryCards = data.cards || data.board || [];
+    memoryFlipped = [];
+    memoryMatched = new Set();
+    memoryLocked = false;
+
+    renderMemoryBoard();
+
+    if (memoryInstruction) {
+        memoryInstruction.textContent =
+            "Find matching pairs. Match a pair to keep your turn.";
+    }
+});
+
+socket.on("memoryTurn", (data) => {
+    console.log("Memory turn:", data);
+
+    const activePlayerId =
+        data.playerId ||
+        data.currentPlayerId;
+
+    memoryMyTurn = activePlayerId === playerId;
+
+    if (memoryTurn) {
+        if (memoryMyTurn) {
+            memoryTurn.textContent = "Your turn";
+        } else {
+            memoryTurn.textContent =
+                `${data.playerName || "Another player"}'s turn`;
+        }
+    }
+
+    updateMemoryBoardState();
+});
+
+function renderMemoryBoard() {
+    if (!memoryBoard) return;
+
+    memoryBoard.innerHTML = "";
+
+    memoryCards.forEach((card, index) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "memory-card";
+        button.dataset.index = index;
+
+        button.innerHTML = `
+            <span class="memory-card-inner">
+                <span class="memory-card-front">?</span>
+                <span class="memory-card-back"></span>
+            </span>
+        `;
+
+        button.addEventListener("click", () => {
+            flipMemoryCard(index);
+        });
+
+        memoryBoard.appendChild(button);
+    });
+
+    updateMemoryBoardState();
+}
+
+function updateMemoryBoardState() {
+    if (!memoryBoard) return;
+
+    const cards = memoryBoard.querySelectorAll(".memory-card");
+
+    cards.forEach((card, index) => {
+        const isMatched = memoryMatched.has(index);
+        const isFlipped = memoryFlipped.includes(index);
+
+        card.classList.toggle("matched", isMatched);
+        card.classList.toggle("flipped", isFlipped);
+
+        card.disabled =
+            memoryLocked ||
+            !memoryMyTurn ||
+            isMatched ||
+            isFlipped;
+    });
+}
+
+function flipMemoryCard(index) {
+    if (!memoryMyTurn || memoryLocked) return;
+
+    if (memoryMatched.has(index)) return;
+
+    if (memoryFlipped.includes(index)) return;
+
+    if (memoryFlipped.length >= 2) return;
+
+    memoryLocked = true;
+
+    const cardElement =
+        memoryBoard?.querySelector(
+            `[data-index="${index}"]`
+        );
+
+    if (cardElement) {
+        cardElement.classList.add("flipped");
+    }
+
+    socket.emit("memoryFlip", {
+        roomCode,
+        playerId,
+        cardIndex: index
+    });
+}
+
+socket.on("memoryCardFlipped", (data) => {
+    console.log("Memory card flipped:", data);
+
+    const index =
+        data.cardIndex !== undefined
+            ? data.cardIndex
+            : data.index;
+
+    if (index === undefined) return;
+
+    const symbol =
+        data.symbol !== undefined
+            ? data.symbol
+            : data.value;
+
+    if (!memoryFlipped.includes(index)) {
+        memoryFlipped.push(index);
+    }
+
+    const cardElement =
+        memoryBoard?.querySelector(
+            `[data-index="${index}"]`
+        );
+
+    if (cardElement) {
+        cardElement.classList.add("flipped");
+
+        const back =
+            cardElement.querySelector(".memory-card-back");
+
+        if (back) {
+            back.textContent = symbol ?? "";
+        }
+    }
+
+    updateMemoryBoardState();
+});
+
+socket.on("memoryMatch", (data) => {
+    console.log("Memory match:", data);
+
+    const indexes =
+        data.cardIndexes ||
+        data.cards ||
+        memoryFlipped;
+
+    indexes.forEach((index) => {
+        memoryMatched.add(Number(index));
+    });
+
+    memoryFlipped = memoryFlipped.filter(
+        (index) => !indexes.includes(index)
     );
 
+    memoryLocked = false;
+
+    showMessage(
+        data.playerId === playerId
+            ? `Match! +${data.points || 0} points`
+            : `${data.playerName || "A player"} found a match.`,
+        "correct"
+    );
+
+    updateMemoryBoardState();
+});
+
+socket.on("memoryMismatch", (data) => {
+    console.log("Memory mismatch:", data);
+
+    const indexes =
+        data.cardIndexes ||
+        data.cards ||
+        [...memoryFlipped];
+
+    memoryLocked = true;
+
+    setTimeout(() => {
+        indexes.forEach((index) => {
+            const cardElement =
+                memoryBoard?.querySelector(
+                    `[data-index="${index}"]`
+                );
+
+            if (cardElement) {
+                cardElement.classList.remove("flipped");
+
+                const back =
+                    cardElement.querySelector(
+                        ".memory-card-back"
+                    );
+
+                if (back) {
+                    back.textContent = "";
+                }
+            }
+        });
+
+        memoryFlipped = [];
+
+        memoryLocked = false;
+
+        updateMemoryBoardState();
+    }, 900);
+
+    showMessage("No match. Keep trying!", "incorrect");
+});
+
+
+// ============================================================
+// SCOREBOARD
+// ============================================================
+
+socket.on("scoreUpdate", (players) => {
+    renderScoreboard(players);
+});
+
+function renderScoreboard(players) {
+    if (!scoreboard) return;
+
+    scoreboard.innerHTML = "";
+
+    if (!Array.isArray(players)) return;
+
+    const sortedPlayers = [...players].sort(
+        (a, b) => (b.score || 0) - (a.score || 0)
+    );
+
+    sortedPlayers.forEach((player, index) => {
+        const row = document.createElement("div");
+
+        row.className = "score-row";
+
+        if (player.playerId === playerId) {
+            row.classList.add("current-player");
+        }
+
+        const position = index + 1;
+
+        row.innerHTML = `
+            <div class="score-player">
+                <span class="score-position">${position}</span>
+                <span class="score-name">
+                    ${escapeHtml(player.name || "Player")}
+                </span>
+            </div>
+            <strong class="score-value">
+                ${Number(player.score || 0)}
+            </strong>
+        `;
+
+        scoreboard.appendChild(row);
+    });
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GAME FINISHED
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// GAME FINISHED
+// ============================================================
 
-socket.on(
-    "gameFinished",
-    (players) => {
+socket.on("gameFinished", (data) => {
+    console.log("Game finished:", data);
 
-        clearInterval(
-            timerInterval
-        );
+    gameActive = false;
 
+    stopTimer();
 
-        /*
-        |--------------------------------------------------------------------------
-        | STOP TIMER
-        |--------------------------------------------------------------------------
-        */
+    hideTimer();
 
-        timerElement.textContent =
-            "";
+    answerButtons.forEach((button) => {
+        button.disabled = true;
+    });
 
-        timerElement.classList.remove(
-            "timer-warning"
-        );
+    puzzleAnswers.forEach((button) => {
+        button.disabled = true;
+    });
 
-
-        if (timerProgress) {
-
-            timerProgress.style.transition =
-                "none";
-
-            timerProgress.style.width =
-                "0%";
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHANGE QUESTION HEADER
-        |--------------------------------------------------------------------------
-        */
-
-        questionNumberElement.textContent =
-            "Final Results";
-
-
-        questionElement.classList.remove(
-            "question-changing"
-        );
-
-        void questionElement.offsetWidth;
-
-        questionElement.classList.add(
-            "game-over-animation"
-        );
-
-
-        questionElement.textContent =
-            "🏆 Game Over!";
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | HIDE ANSWERS
-        |--------------------------------------------------------------------------
-        */
-
-        answerButtons.forEach(
-            (button) => {
-
-                button.style.display =
-                    "none";
-
-            }
-        );
-
-
-        answerMessage.classList.add(
-            "hidden"
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SHOW RESULTS NAVIGATION
-        |--------------------------------------------------------------------------
-        */
-
-        resultsNavigation.classList.remove(
-            "hidden"
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FINAL SCORES
-        |--------------------------------------------------------------------------
-        */
-
-        renderFinalScores(
-            players
-        );
-
+    if (scrambleInput) {
+        scrambleInput.disabled = true;
     }
-);
 
+    if (scrambleSubmit) {
+        scrambleSubmit.disabled = true;
+    }
 
-/*
-|--------------------------------------------------------------------------
-| FINAL SCOREBOARD
-|--------------------------------------------------------------------------
-*/
+    if (claimBingoButton) {
+        claimBingoButton.disabled = true;
+    }
 
-function renderFinalScores(
-    players
-) {
+    memoryLocked = true;
 
-    scoreboard.innerHTML =
-        "";
+    updateMemoryBoardState();
 
+    if (resultsNavigation) {
+        resultsNavigation.style.display = "";
+    }
 
-    const sortedPlayers =
-        [...players].sort(
-            (a, b) =>
-                b.score -
-                a.score
-        );
+    const finalPlayers =
+        data.players ||
+        data.scores ||
+        [];
 
+    if (Array.isArray(finalPlayers) && finalPlayers.length) {
+        renderScoreboard(finalPlayers);
+    }
 
-    sortedPlayers.forEach(
-        (player, index) => {
+    const winner =
+        data.winner ||
+        (Array.isArray(finalPlayers)
+            ? finalPlayers[0]
+            : null);
 
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "player score-row final-score-row";
-
-
-            if (index === 0) {
-
-                row.classList.add(
-                    "winner"
-                );
-
-            }
-
-
-            const position =
-                document.createElement(
-                    "span"
-                );
-
-            position.className =
-                "score-position";
-
-
-            if (index === 0) {
-
-                position.textContent =
-                    "🏆";
-
-            } else if (
-                index === 1
-            ) {
-
-                position.textContent =
-                    "🥈";
-
-            } else if (
-                index === 2
-            ) {
-
-                position.textContent =
-                    "🥉";
-
-            } else {
-
-                position.textContent =
-                    `${index + 1}`;
-
-            }
-
-
-            const name =
-                document.createElement(
-                    "span"
-                );
-
-            name.className =
-                "score-name";
-
-            name.textContent =
-                player.name;
-
-
-            const score =
-                document.createElement(
-                    "span"
-                );
-
-            score.className =
-                "score-value";
-
-            score.textContent =
-                `${player.score} pts`;
-
-
-            row.appendChild(
-                position
+    if (winner) {
+        if (winner.playerId === playerId) {
+            showMessage("You won! 🎉", "correct");
+        } else {
+            showMessage(
+                `${winner.name || "A player"} won!`,
+                "correct"
             );
-
-            row.appendChild(
-                name
-            );
-
-            row.appendChild(
-                score
-            );
-
-
-            scoreboard.appendChild(
-                row
-            );
-
         }
-    );
+    } else {
+        showMessage("Game over!");
+    }
+});
 
+
+// ============================================================
+// PLAY AGAIN / REMATCH
+// ============================================================
+
+if (playAgainButton) {
+    playAgainButton.addEventListener("click", () => {
+        playAgainButton.disabled = true;
+
+        socket.emit("rematch", {
+            roomCode,
+            playerId
+        });
+    });
+}
+
+socket.on("rematchStarted", () => {
+    window.location.href =
+        `/lobby.html?room=${encodeURIComponent(roomCode)}`;
+});
+
+
+// ============================================================
+// ROOM UPDATE
+// ============================================================
+
+socket.on("roomUpdate", (data) => {
+    console.log("Room update:", data);
+
+    if (data.gameType) {
+        gameType = data.gameType;
+    }
+});
+
+
+// ============================================================
+// ERROR HANDLING
+// ============================================================
+
+socket.on("errorMessage", (message) => {
+    console.error("Server error:", message);
+
+    showError(message);
+
+    if (playAgainButton) {
+        playAgainButton.disabled = false;
+    }
+
+    if (claimBingoButton && gameType === "bingo") {
+        claimBingoButton.disabled = false;
+    }
+});
+
+
+// ============================================================
+// UTILITY
+// ============================================================
+
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| PLAY AGAIN
-|--------------------------------------------------------------------------
-|
-| For now, "Play again" creates a fresh room.
-| Later, when we upgrade server.js, we can make
-| this a true rematch inside the same room.
-|--------------------------------------------------------------------------
-*/
+// ============================================================
+// PAGE CLEANUP
+// ============================================================
 
-playAgainButton.addEventListener(
-    "click",
-    () => {
-
-        window.location.href =
-            `/index.html?game=${encodeURIComponent(gameType)}&create=1`;
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| SERVER ERROR
-|--------------------------------------------------------------------------
-*/
-
-socket.on(
-    "errorMessage",
-    (message) => {
-
-        alert(
-            message
-        );
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| CONNECTION ERROR
-|--------------------------------------------------------------------------
-*/
-
-socket.on(
-    "connect_error",
-    () => {
-
-        if (questionElement) {
-
-            questionElement.textContent =
-                "Reconnecting to game...";
-
-        }
-
-    }
-);
+window.addEventListener("beforeunload", () => {
+    stopTimer();
+});
