@@ -6,16 +6,11 @@ const fs = require("fs");
 
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-app.use(
-    express.static(
-        path.join(__dirname, "public")
-    )
-);
+app.use(express.static(path.join(__dirname, "public")));
 
 
 /*
@@ -24,32 +19,23 @@ app.use(
 |--------------------------------------------------------------------------
 */
 
-const quizPath =
-    path.join(
-        __dirname,
-        "data",
-        "quiz.json"
-    );
+const quizPath = path.join(
+    __dirname,
+    "data",
+    "quiz.json"
+);
 
 let questionBank = [];
 
 try {
-
-    questionBank =
-        JSON.parse(
-            fs.readFileSync(
-                quizPath,
-                "utf8"
-            )
-        );
-
+    questionBank = JSON.parse(
+        fs.readFileSync(quizPath, "utf8")
+    );
 } catch (error) {
-
     console.error(
         "Could not load quiz.json:",
         error
     );
-
 }
 
 
@@ -61,26 +47,17 @@ try {
 
 const rooms = {};
 
-const DISCONNECT_GRACE_PERIOD =
-    30000;
+const DISCONNECT_GRACE_PERIOD = 30000;
 
-const DEFAULT_QUESTIONS_PER_GAME =
-    10;
-
+const DEFAULT_QUESTIONS_PER_GAME = 10;
 const MIN_QUESTIONS = 5;
-
 const MAX_QUESTIONS = 20;
 
 const QUESTION_TIME = 15;
-
-const GAME_READY_TIMEOUT =
-    10000;
-
-const NEXT_QUESTION_DELAY =
-    1500;
+const GAME_READY_TIMEOUT = 10000;
+const NEXT_QUESTION_DELAY = 1500;
 
 const SCRAMBLE_TIME = 20;
-
 const PUZZLE_TIME = 20;
 
 
@@ -106,7 +83,6 @@ const GAME_TYPES = [
 */
 
 const wordBank = [
-
     "africa",
     "agriculture",
     "adventure",
@@ -152,7 +128,6 @@ const wordBank = [
     "victory",
     "wildlife",
     "wisdom"
-
 ];
 
 
@@ -163,33 +138,18 @@ const wordBank = [
 */
 
 const puzzleBank = [
-
     {
         type: "sequence",
-        question:
-            "What number comes next? 2, 4, 8, 16, ?",
-        answers: [
-            "24",
-            "32",
-            "30",
-            "36"
-        ],
+        question: "What number comes next? 2, 4, 8, 16, ?",
+        answers: ["24", "32", "30", "36"],
         correct: 1
     },
-
     {
         type: "sequence",
-        question:
-            "What number comes next? 3, 6, 12, 24, ?",
-        answers: [
-            "36",
-            "42",
-            "48",
-            "54"
-        ],
+        question: "What number comes next? 3, 6, 12, 24, ?",
+        answers: ["36", "42", "48", "54"],
         correct: 2
     },
-
     {
         type: "logic",
         question:
@@ -202,7 +162,6 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "logic",
         question:
@@ -215,50 +174,30 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 1, 1, 2, 3, 5, 8, ?",
-        answers: [
-            "11",
-            "12",
-            "13",
-            "15"
-        ],
+        answers: ["11", "12", "13", "15"],
         correct: 2
     },
-
     {
         type: "logic",
         question:
             "If you have three apples and take away two, how many apples do you have?",
-        answers: [
-            "1",
-            "2",
-            "3",
-            "0"
-        ],
+        answers: ["1", "2", "3", "0"],
         correct: 1
     },
-
     {
         type: "sequence",
         question:
             "What number is missing? 5, 10, 15, ?, 25",
-        answers: [
-            "18",
-            "19",
-            "20",
-            "22"
-        ],
+        answers: ["18", "19", "20", "22"],
         correct: 2
     },
-
     {
         type: "logic",
-        question:
-            "Which is the odd one out?",
+        question: "Which is the odd one out?",
         answers: [
             "Triangle",
             "Square",
@@ -267,50 +206,30 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 100, 90, 80, 70, ?",
-        answers: [
-            "65",
-            "60",
-            "55",
-            "50"
-        ],
+        answers: ["65", "60", "55", "50"],
         correct: 1
     },
-
     {
         type: "logic",
         question:
             "A farmer has 10 chickens. All but 3 run away. How many remain?",
-        answers: [
-            "3",
-            "7",
-            "10",
-            "0"
-        ],
+        answers: ["3", "7", "10", "0"],
         correct: 0
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 2, 6, 12, 20, ?",
-        answers: [
-            "28",
-            "30",
-            "32",
-            "36"
-        ],
+        answers: ["28", "30", "32", "36"],
         correct: 1
     },
-
     {
         type: "logic",
-        question:
-            "Which word does not belong?",
+        question: "Which word does not belong?",
         answers: [
             "Apple",
             "Mango",
@@ -319,20 +238,13 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 1, 4, 9, 16, ?",
-        answers: [
-            "20",
-            "24",
-            "25",
-            "30"
-        ],
+        answers: ["20", "24", "25", "30"],
         correct: 2
     },
-
     {
         type: "logic",
         question:
@@ -345,20 +257,13 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 81, 27, 9, 3, ?",
-        answers: [
-            "1",
-            "0",
-            "2",
-            "6"
-        ],
+        answers: ["1", "0", "2", "6"],
         correct: 0
     },
-
     {
         type: "logic",
         question:
@@ -371,20 +276,13 @@ const puzzleBank = [
         ],
         correct: 2
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 7, 14, 21, 28, ?",
-        answers: [
-            "32",
-            "35",
-            "36",
-            "42"
-        ],
+        answers: ["32", "35", "36", "42"],
         correct: 1
     },
-
     {
         type: "logic",
         question:
@@ -397,20 +295,13 @@ const puzzleBank = [
         ],
         correct: 1
     },
-
     {
         type: "sequence",
         question:
             "What comes next? 50, 45, 40, 35, ?",
-        answers: [
-            "25",
-            "28",
-            "30",
-            "32"
-        ],
+        answers: ["25", "28", "30", "32"],
         correct: 2
     },
-
     {
         type: "logic",
         question:
@@ -423,7 +314,6 @@ const puzzleBank = [
         ],
         correct: 3
     }
-
 ];
 
 
@@ -434,7 +324,6 @@ const puzzleBank = [
 */
 
 const memorySymbols = [
-
     "🍎",
     "🌍",
     "⭐",
@@ -447,7 +336,6 @@ const memorySymbols = [
     "🐘",
     "🏆",
     "🔥"
-
 ];
 
 
@@ -458,28 +346,17 @@ const memorySymbols = [
 */
 
 function shuffle(array) {
-
     const copy = [...array];
 
-    for (
-        let i = copy.length - 1;
-        i > 0;
-        i--
-    ) {
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(
+            Math.random() * (i + 1)
+        );
 
-        const j =
-            Math.floor(
-                Math.random() * (i + 1)
-            );
-
-        [
-            copy[i],
-            copy[j]
-        ] = [
+        [copy[i], copy[j]] = [
             copy[j],
             copy[i]
         ];
-
     }
 
     return copy;
@@ -487,227 +364,199 @@ function shuffle(array) {
 
 
 function generateRoomCode() {
-
     const characters =
         "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     let code = "";
 
     do {
-
         code = "";
 
-        for (
-            let i = 0;
-            i < 6;
-            i++
-        ) {
-
-            code +=
-                characters[
-                    Math.floor(
-                        Math.random() *
-                        characters.length
-                    )
-                ];
-
+        for (let i = 0; i < 6; i++) {
+            code += characters[
+                Math.floor(
+                    Math.random() *
+                    characters.length
+                )
+            ];
         }
-
     } while (rooms[code]);
 
     return code;
 }
 
 
-function normalizeRoomCode(
-    roomCode
-) {
-
-    return String(
-        roomCode || ""
-    )
+function normalizeRoomCode(roomCode) {
+    return String(roomCode || "")
         .trim()
         .toUpperCase();
-
 }
 
 
-function findPlayer(
-    room,
-    playerId
-) {
-
+function findPlayer(room, playerId) {
     if (!room) {
         return null;
     }
 
     return room.players.find(
-        player =>
-            player.id === playerId
+        player => player.id === playerId
     ) || null;
 }
 
 
-function getConnectedPlayers(
-    room
-) {
-
+function getConnectedPlayers(room) {
     if (!room) {
         return [];
     }
 
     return room.players.filter(
-        player =>
-            player.connected
+        player => player.connected
     );
-
 }
 
 
-function clearRoomTimers(
-    room
-) {
-
+function clearRoomTimers(room) {
     if (!room) {
         return;
     }
 
     if (room.nextQuestionTimer) {
-
-        clearTimeout(
-            room.nextQuestionTimer
-        );
-
+        clearTimeout(room.nextQuestionTimer);
         room.nextQuestionTimer = null;
-
     }
 
     if (room.readyTimer) {
-
-        clearTimeout(
-            room.readyTimer
-        );
-
+        clearTimeout(room.readyTimer);
         room.readyTimer = null;
-
     }
 
     if (room.bingoTimer) {
-
-        clearInterval(
-            room.bingoTimer
-        );
-
+        clearInterval(room.bingoTimer);
         room.bingoTimer = null;
-
     }
 
     if (room.memoryTimer) {
-
-        clearTimeout(
-            room.memoryTimer
-        );
-
+        clearTimeout(room.memoryTimer);
         room.memoryTimer = null;
-
     }
-
 }
 
 
-function sortPlayersByScore(
-    players
-) {
-
+function sortPlayersByScore(players) {
     return [...players].sort(
-        (a, b) =>
-            b.score - a.score
+        (a, b) => b.score - a.score
     );
-
 }
 
 
-function normalizeText(
-    value
-) {
-
-    return String(
-        value || ""
-    )
+function normalizeText(value) {
+    return String(value || "")
         .trim()
         .toLowerCase()
-        .replace(
-            /[^a-z0-9]/g,
-            ""
-        );
-
+        .replace(/[^a-z0-9]/g, "");
 }
 
 
-function getGameTitle(
-    gameType
-) {
-
+function getGameTitle(gameType) {
     const titles = {
-
-        quiz:
-            "Quiz Arena",
-
-        scramble:
-            "Word Scramble",
-
-        puzzle:
-            "Puzzle Rush",
-
-        bingo:
-            "Bingo",
-
-        memory:
-            "Memory Match"
-
+        quiz: "Quiz Arena",
+        scramble: "Word Scramble",
+        puzzle: "Puzzle Rush",
+        bingo: "Bingo",
+        memory: "Memory Match"
     };
 
-    return (
-        titles[gameType] ||
-        "Game Space"
-    );
-
+    return titles[gameType] || "Game Space";
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| QUIZ ENGINE
+| SCOREBOARD
 |--------------------------------------------------------------------------
 */
 
-function createQuestionSet(
-    settings = {}
-) {
+function sendScores(roomCode) {
+    const room = rooms[roomCode];
 
+    if (!room) {
+        return;
+    }
+
+    io.to(roomCode).emit(
+        "scoreUpdate",
+        sortPlayersByScore(room.players).map(
+            player => ({
+                id: player.id,
+                name: player.name,
+                score: player.score,
+                connected: player.connected
+            })
+        )
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ROOM UPDATE
+|--------------------------------------------------------------------------
+*/
+
+function sendRoomUpdate(roomCode) {
+    const room = rooms[roomCode];
+
+    if (!room) {
+        return;
+    }
+
+    io.to(roomCode).emit(
+        "roomUpdate",
+        {
+            hostPlayerId: room.hostPlayerId,
+            gameType: room.gameType,
+            gameTitle: getGameTitle(
+                room.gameType
+            ),
+            status: room.status,
+            settings: room.settings,
+            players: room.players.map(
+                player => ({
+                    id: player.id,
+                    name: player.name,
+                    connected: player.connected,
+                    score: player.score
+                })
+            )
+        }
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| QUIZ
+|--------------------------------------------------------------------------
+*/
+
+function createQuestionSet(settings = {}) {
     const category =
-        settings.category ||
-        "general";
+        settings.category || "general";
 
     const difficulty =
-        settings.difficulty ||
-        "mixed";
+        settings.difficulty || "mixed";
 
     let count =
-        Number(
-            settings.questions
-        ) ||
+        Number(settings.questions) ||
         DEFAULT_QUESTIONS_PER_GAME;
 
-    count =
-        Math.max(
-            MIN_QUESTIONS,
-            Math.min(
-                MAX_QUESTIONS,
-                count
-            )
-        );
-
+    count = Math.max(
+        MIN_QUESTIONS,
+        Math.min(
+            MAX_QUESTIONS,
+            count
+        )
+    );
 
     let categoryQuestions =
         questionBank.filter(
@@ -716,32 +565,24 @@ function createQuestionSet(
                 category
         );
 
-
     if (
         categoryQuestions.length === 0
     ) {
-
-        categoryQuestions =
-            [...questionBank];
-
+        categoryQuestions = [
+            ...questionBank
+        ];
     }
-
 
     let preferred = [];
 
-    if (
-        difficulty !== "mixed"
-    ) {
-
+    if (difficulty !== "mixed") {
         preferred =
             categoryQuestions.filter(
                 question =>
                     question.difficulty ===
                     difficulty
             );
-
     }
-
 
     const remaining =
         categoryQuestions.filter(
@@ -751,24 +592,17 @@ function createQuestionSet(
                 )
         );
 
-
-    return shuffle([
+    const combined = [
         ...shuffle(preferred),
         ...shuffle(remaining)
-    ]).slice(
-        0,
-        count
-    );
+    ];
 
+    return combined.slice(0, count);
 }
 
 
-function sendQuestion(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function sendQuestion(roomCode) {
+    const room = rooms[roomCode];
 
     if (
         !room ||
@@ -777,230 +611,134 @@ function sendQuestion(
         return;
     }
 
-
     if (
         room.currentQuestionIndex >=
         room.questionSet.length
     ) {
-
-        finishGame(
-            roomCode
-        );
-
+        finishGame(roomCode);
         return;
-
     }
-
 
     const question =
         room.questionSet[
             room.currentQuestionIndex
         ];
 
-
     room.questionStartedAt =
         Date.now();
 
-    // FIX:
-    // Use the same property that submitAnswer()
-    // uses.
-
     room.questionAnswers = {};
-
     room.questionActive = true;
-
-
-    const safeQuestion = {
-
-        number:
-            room.currentQuestionIndex + 1,
-
-        total:
-            room.questionSet.length,
-
-        question:
-            question.question,
-
-        answers:
-            question.answers,
-
-        timeLimit:
-            QUESTION_TIME
-
-    };
-
 
     io.to(roomCode).emit(
         "newQuestion",
-        safeQuestion
-    );
+        {
+            number:
+                room.currentQuestionIndex + 1,
 
+            total:
+                room.questionSet.length,
+
+            question:
+                question.question,
+
+            answers:
+                question.answers,
+
+            timeLimit:
+                QUESTION_TIME
+        }
+    );
 
     room.nextQuestionTimer =
         setTimeout(
             () => {
-
                 if (
                     !rooms[roomCode] ||
-                    room.status !==
-                    "playing"
+                    room.status !== "playing"
                 ) {
                     return;
                 }
 
-                if (
-                    !room.questionActive
-                ) {
+                if (!room.questionActive) {
                     return;
                 }
 
-                room.questionActive =
-                    false;
+                room.questionActive = false;
 
                 io.to(roomCode).emit(
                     "questionEnded"
                 );
 
-                nextQuestion(
-                    roomCode
-                );
-
+                nextQuestion(roomCode);
             },
             QUESTION_TIME * 1000
         );
-
 }
 
 
-function nextQuestion(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function nextQuestion(roomCode) {
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
-
     room.nextQuestionTimer =
         setTimeout(
             () => {
-
-                if (
-                    !rooms[roomCode]
-                ) {
+                if (!rooms[roomCode]) {
                     return;
                 }
 
                 room.currentQuestionIndex++;
 
-                sendQuestion(
-                    roomCode
-                );
-
+                sendQuestion(roomCode);
             },
             NEXT_QUESTION_DELAY
         );
-
-}
-
-
-function finishGame(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
-
-    if (!room) {
-        return;
-    }
-
-
-    clearRoomTimers(
-        room
-    );
-
-    room.status =
-        "finished";
-
-    room.questionActive =
-        false;
-
-
-    const players =
-        sortPlayersByScore(
-            room.players
-        );
-
-
-    io.to(roomCode).emit(
-        "gameFinished",
-        players
-    );
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| WORD SCRAMBLE
+| SCRAMBLE
 |--------------------------------------------------------------------------
 */
 
-function scrambleWord(
-    word
-) {
-
-    let result =
-        word;
-
+function scrambleWord(word) {
+    let result = word;
     let attempts = 0;
 
     while (
         result === word &&
         attempts < 20
     ) {
-
         result =
             shuffle(
                 word.split("")
             ).join("");
 
         attempts++;
-
     }
 
     return result;
-
 }
 
 
-function createScrambleSet(
-    count = DEFAULT_QUESTIONS_PER_GAME
-) {
-
-    return shuffle(
-        wordBank
-    ).slice(
+function createScrambleSet(count) {
+    return shuffle(wordBank).slice(
         0,
         Math.min(
             count,
             wordBank.length
         )
     );
-
 }
 
 
-function sendScrambleWord(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function sendScrambleWord(roomCode) {
+    const room = rooms[roomCode];
 
     if (
         !room ||
@@ -1009,73 +747,49 @@ function sendScrambleWord(
         return;
     }
 
-
     if (
         room.currentQuestionIndex >=
         room.scrambleWords.length
     ) {
-
-        finishGame(
-            roomCode
-        );
-
+        finishGame(roomCode);
         return;
-
     }
-
 
     const word =
         room.scrambleWords[
             room.currentQuestionIndex
         ];
 
-
-    room.currentScrambleWord =
-        word;
-
-    room.scrambleStartedAt =
-        Date.now();
-
-    room.scrambleAnswered =
-        {};
-
-
-    const scrambled =
-        scrambleWord(
-            word
-        );
-
+    room.currentScrambleWord = word;
+    room.scrambleStartedAt = Date.now();
+    room.scrambleAnswered = {};
 
     io.to(roomCode).emit(
         "newScramble",
         {
-
             number:
                 room.currentQuestionIndex + 1,
 
             total:
                 room.scrambleWords.length,
 
-            scrambled,
+            scrambled:
+                scrambleWord(word),
 
             wordLength:
                 word.length,
 
             timeLimit:
                 SCRAMBLE_TIME
-
         }
     );
-
 
     room.nextQuestionTimer =
         setTimeout(
             () => {
-
                 if (
                     !rooms[roomCode] ||
-                    room.status !==
-                    "playing"
+                    room.status !== "playing"
                 ) {
                     return;
                 }
@@ -1089,43 +803,31 @@ function sendScrambleWord(
                 sendScrambleWord(
                     roomCode
                 );
-
             },
             SCRAMBLE_TIME * 1000
         );
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| PUZZLE RUSH
+| PUZZLE
 |--------------------------------------------------------------------------
 */
 
-function createPuzzleSet(
-    count = DEFAULT_QUESTIONS_PER_GAME
-) {
-
-    return shuffle(
-        puzzleBank
-    ).slice(
+function createPuzzleSet(count) {
+    return shuffle(puzzleBank).slice(
         0,
         Math.min(
             count,
             puzzleBank.length
         )
     );
-
 }
 
 
-function sendPuzzle(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function sendPuzzle(roomCode) {
+    const room = rooms[roomCode];
 
     if (
         !room ||
@@ -1134,41 +836,26 @@ function sendPuzzle(
         return;
     }
 
-
     if (
         room.currentQuestionIndex >=
         room.puzzleSet.length
     ) {
-
-        finishGame(
-            roomCode
-        );
-
+        finishGame(roomCode);
         return;
-
     }
-
 
     const puzzle =
         room.puzzleSet[
             room.currentQuestionIndex
         ];
 
-
-    room.currentPuzzle =
-        puzzle;
-
-    room.puzzleStartedAt =
-        Date.now();
-
-    room.puzzleAnswers =
-        {};
-
+    room.currentPuzzle = puzzle;
+    room.puzzleStartedAt = Date.now();
+    room.puzzleAnswers = {};
 
     io.to(roomCode).emit(
         "newPuzzle",
         {
-
             number:
                 room.currentQuestionIndex + 1,
 
@@ -1186,19 +873,15 @@ function sendPuzzle(
 
             timeLimit:
                 PUZZLE_TIME
-
         }
     );
-
 
     room.nextQuestionTimer =
         setTimeout(
             () => {
-
                 if (
                     !rooms[roomCode] ||
-                    room.status !==
-                    "playing"
+                    room.status !== "playing"
                 ) {
                     return;
                 }
@@ -1209,14 +892,10 @@ function sendPuzzle(
 
                 room.currentQuestionIndex++;
 
-                sendPuzzle(
-                    roomCode
-                );
-
+                sendPuzzle(roomCode);
             },
             PUZZLE_TIME * 1000
         );
-
 }
 
 
@@ -1227,7 +906,6 @@ function sendPuzzle(
 */
 
 function generateBingoCard() {
-
     const numbers =
         shuffle(
             Array.from(
@@ -1239,108 +917,62 @@ function generateBingoCard() {
             )
         );
 
-
     const card = [];
 
-
-    for (
-        let row = 0;
-        row < 5;
-        row++
-    ) {
-
+    for (let row = 0; row < 5; row++) {
         const currentRow = [];
-
 
         for (
             let column = 0;
             column < 5;
             column++
         ) {
-
             currentRow.push(
                 numbers[
-                    row * 5 +
-                    column
+                    row * 5 + column
                 ]
             );
-
         }
 
-
-        card.push(
-            currentRow
-        );
-
+        card.push(currentRow);
     }
 
-
-    card[2][2] =
-        "FREE";
-
+    card[2][2] = "FREE";
 
     return card;
-
 }
 
 
-function createBingoState(
-    room
-) {
-
-    room.bingoCalled =
-        [];
-
-    room.bingoCards =
-        {};
-
-    room.bingoWinner =
-        null;
-
+function createBingoState(room) {
+    room.bingoCalled = [];
+    room.bingoCards = {};
+    room.bingoWinner = null;
 
     room.players.forEach(
         player => {
-
-            room.bingoCards[
-                player.id
-            ] =
+            room.bingoCards[player.id] =
                 generateBingoCard();
-
         }
     );
-
 }
 
 
-function sendBingoStart(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function sendBingoStart(roomCode) {
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
-
-    createBingoState(
-        room
-    );
-
+    createBingoState(room);
 
     room.players.forEach(
         player => {
-
-            if (
-                !player.connected
-            ) {
+            if (!player.connected) {
                 return;
             }
 
-            io.to(
-                player.socketId
-            ).emit(
+            io.to(player.socketId).emit(
                 "bingoCard",
                 {
                     card:
@@ -1349,10 +981,8 @@ function sendBingoStart(
                         ]
                 }
             );
-
         }
     );
-
 
     io.to(roomCode).emit(
         "bingoStarted",
@@ -1361,12 +991,9 @@ function sendBingoStart(
         }
     );
 
+    let currentNumberIndex = 0;
 
-    let currentNumberIndex =
-        0;
-
-
-    const numbers =
+    room.bingoNumbers =
         shuffle(
             Array.from(
                 {
@@ -1377,67 +1004,48 @@ function sendBingoStart(
             )
         );
 
-
-    room.bingoNumbers =
-        numbers;
-
-
     room.bingoTimer =
         setInterval(
             () => {
-
                 if (
                     !rooms[roomCode] ||
-                    room.status !==
-                    "playing"
+                    room.status !== "playing"
                 ) {
-
                     clearInterval(
                         room.bingoTimer
                     );
 
-                    room.bingoTimer =
-                        null;
-
+                    room.bingoTimer = null;
                     return;
-
                 }
-
 
                 if (
                     currentNumberIndex >=
-                    numbers.length
+                    room.bingoNumbers.length
                 ) {
-
                     clearInterval(
                         room.bingoTimer
                     );
 
-                    room.bingoTimer =
-                        null;
+                    room.bingoTimer = null;
 
                     finishGame(
                         roomCode
                     );
 
                     return;
-
                 }
 
-
                 const number =
-                    numbers[
+                    room.bingoNumbers[
                         currentNumberIndex
                     ];
 
-
                 currentNumberIndex++;
-
 
                 room.bingoCalled.push(
                     number
                 );
-
 
                 io.to(roomCode).emit(
                     "bingoNumberCalled",
@@ -1448,11 +1056,9 @@ function sendBingoStart(
                             room.bingoCalled
                     }
                 );
-
             },
             1500
         );
-
 }
 
 
@@ -1460,11 +1066,9 @@ function checkBingoWin(
     card,
     calledNumbers
 ) {
-
     if (!card) {
         return false;
     }
-
 
     const marked =
         card.map(
@@ -1478,197 +1082,115 @@ function checkBingoWin(
                 )
         );
 
-
-    for (
-        let row = 0;
-        row < 5;
-        row++
-    ) {
-
+    for (let row = 0; row < 5; row++) {
         if (
-            marked[row].every(
-                Boolean
-            )
+            marked[row].every(Boolean)
         ) {
-
             return true;
-
         }
-
     }
-
 
     for (
         let column = 0;
         column < 5;
         column++
     ) {
-
-        let complete =
-            true;
-
+        let complete = true;
 
         for (
             let row = 0;
             row < 5;
             row++
         ) {
-
             if (
                 !marked[row][column]
             ) {
-
-                complete =
-                    false;
-
+                complete = false;
                 break;
-
             }
-
         }
-
 
         if (complete) {
             return true;
         }
-
     }
 
-
-    let diagonalOne =
-        true;
-
-    let diagonalTwo =
-        true;
-
+    let diagonalOne = true;
+    let diagonalTwo = true;
 
     for (
         let index = 0;
         index < 5;
         index++
     ) {
-
         if (
             !marked[index][index]
         ) {
-
-            diagonalOne =
-                false;
-
+            diagonalOne = false;
         }
-
 
         if (
-            !marked[index][
-                4 - index
-            ]
+            !marked[index][4 - index]
         ) {
-
-            diagonalTwo =
-                false;
-
+            diagonalTwo = false;
         }
-
     }
-
 
     return (
         diagonalOne ||
         diagonalTwo
     );
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| MEMORY MATCH
+| MEMORY
 |--------------------------------------------------------------------------
 */
 
 function createMemoryBoard() {
-
     const symbols =
-        shuffle(
-            memorySymbols
-        ).slice(
+        shuffle(memorySymbols).slice(
             0,
             8
         );
 
-
     const cards = [];
 
+    symbols.forEach(symbol => {
+        cards.push({
+            id: cards.length,
+            symbol,
+            matched: false
+        });
 
-    symbols.forEach(
-        symbol => {
+        cards.push({
+            id: cards.length,
+            symbol,
+            matched: false
+        });
+    });
 
-            cards.push(
-                {
-                    id:
-                        cards.length,
-
-                    symbol,
-
-                    matched:
-                        false
-                }
-            );
-
-
-            cards.push(
-                {
-                    id:
-                        cards.length,
-
-                    symbol,
-
-                    matched:
-                        false
-                }
-            );
-
-        }
-    );
-
-
-    return shuffle(
-        cards
-    );
-
+    return shuffle(cards);
 }
 
 
-function startMemoryGame(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function startMemoryGame(roomCode) {
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
-
     room.memoryBoard =
         createMemoryBoard();
 
-    room.memoryTurnIndex =
-        0;
-
-    room.memoryTurnPlayerId =
-        null;
-
-    room.memoryFirstCard =
-        null;
-
-    room.memorySecondCard =
-        null;
-
-    room.memoryLocked =
-        false;
-
+    room.memoryTurnIndex = 0;
+    room.memoryTurnPlayerId = null;
+    room.memoryFirstCard = null;
+    room.memorySecondCard = null;
+    room.memoryLocked = false;
 
     io.to(roomCode).emit(
         "memoryStarted",
@@ -1676,171 +1198,145 @@ function startMemoryGame(
             board:
                 room.memoryBoard.map(
                     card => ({
-                        id:
-                            card.id,
-
-                        matched:
-                            card.matched
+                        id: card.id,
+                        matched: card.matched
                     })
                 )
         }
     );
 
-
     moveToNextMemoryPlayer(
         roomCode
     );
-
 }
 
 
 function moveToNextMemoryPlayer(
     roomCode
 ) {
-
-    const room =
-        rooms[roomCode];
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
-
     const players =
-        getConnectedPlayers(
-            room
-        );
+        getConnectedPlayers(room);
 
-
-    if (
-        players.length === 0
-    ) {
+    if (players.length === 0) {
         return;
     }
-
 
     if (
         room.memoryTurnIndex >=
         players.length
     ) {
-
-        room.memoryTurnIndex =
-            0;
-
+        room.memoryTurnIndex = 0;
     }
-
 
     const player =
         players[
             room.memoryTurnIndex
         ];
 
-
     room.memoryTurnPlayerId =
         player.id;
-
 
     io.to(roomCode).emit(
         "memoryTurn",
         {
-            playerId:
-                player.id,
-
-            playerName:
-                player.name
+            playerId: player.id,
+            playerName: player.name
         }
     );
-
 }
 
 
-function finishMemoryGame(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function finishMemoryGame(roomCode) {
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
+    clearRoomTimers(room);
 
-    clearRoomTimers(
-        room
-    );
-
-
-    const players =
-        sortPlayersByScore(
-            room.players
-        );
-
-
-    room.status =
-        "finished";
-
+    room.status = "finished";
 
     io.to(roomCode).emit(
         "gameFinished",
-        players
+        sortPlayersByScore(
+            room.players
+        )
     );
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| SHARED GAME START
+| GAME FINISH
 |--------------------------------------------------------------------------
 */
 
-function startGameForRoom(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
+function finishGame(roomCode) {
+    const room = rooms[roomCode];
 
     if (!room) {
         return;
     }
 
+    clearRoomTimers(room);
 
-    clearRoomTimers(
-        room
+    room.status = "finished";
+    room.questionActive = false;
+
+    io.to(roomCode).emit(
+        "gameFinished",
+        sortPlayersByScore(
+            room.players
+        )
     );
 
+    sendScores(roomCode);
+}
 
-    room.status =
-        "playing";
 
-    room.startedAt =
-        Date.now();
+/*
+|--------------------------------------------------------------------------
+| START GAME
+|--------------------------------------------------------------------------
+*/
 
-    room.currentQuestionIndex =
-        0;
+function startGameForRoom(roomCode) {
+    const room = rooms[roomCode];
 
+    if (!room) {
+        return;
+    }
+
+    clearRoomTimers(room);
+
+    room.status = "playing";
+    room.startedAt = Date.now();
+    room.currentQuestionIndex = 0;
 
     room.players.forEach(
         player => {
-
-            player.score =
-                0;
-
-            player.ready =
-                false;
-
+            player.score = 0;
+            player.ready = false;
         }
     );
 
+    /*
+    IMPORTANT:
+    Tell every client exactly which game
+    has started.
+    */
 
     io.to(roomCode).emit(
         "gameStarted",
         {
-            gameType:
-                room.gameType,
-
+            gameType: room.gameType,
             gameTitle:
                 getGameTitle(
                     room.gameType
@@ -1848,10 +1344,10 @@ function startGameForRoom(
         }
     );
 
+    sendScores(roomCode);
+    sendRoomUpdate(roomCode);
 
-    switch (
-        room.gameType
-    ) {
+    switch (room.gameType) {
 
         case "quiz":
 
@@ -1860,18 +1356,11 @@ function startGameForRoom(
                     room.settings
                 );
 
-            room.questionActive =
-                false;
+            room.questionActive = false;
+            room.questionStartedAt = null;
+            room.questionAnswers = {};
 
-            room.questionStartedAt =
-                null;
-
-            room.questionAnswers =
-                {};
-
-            sendQuestion(
-                roomCode
-            );
+            sendQuestion(roomCode);
 
             break;
 
@@ -1880,12 +1369,13 @@ function startGameForRoom(
 
             room.scrambleWords =
                 createScrambleSet(
-                    room.settings.questions ||
+                    Number(
+                        room.settings.questions
+                    ) ||
                     DEFAULT_QUESTIONS_PER_GAME
                 );
 
-            room.scrambleAnswered =
-                {};
+            room.scrambleAnswered = {};
 
             sendScrambleWord(
                 roomCode
@@ -1898,16 +1388,16 @@ function startGameForRoom(
 
             room.puzzleSet =
                 createPuzzleSet(
-                    room.settings.questions ||
+                    Number(
+                        room.settings.rounds ||
+                        room.settings.questions
+                    ) ||
                     DEFAULT_QUESTIONS_PER_GAME
                 );
 
-            room.puzzleAnswers =
-                {};
+            room.puzzleAnswers = {};
 
-            sendPuzzle(
-                roomCode
-            );
+            sendPuzzle(roomCode);
 
             break;
 
@@ -1932,174 +1422,163 @@ function startGameForRoom(
 
         default:
 
-            room.status =
-                "lobby";
+            room.status = "lobby";
 
             io.to(roomCode).emit(
                 "errorMessage",
                 "This game type is not supported."
             );
 
+            sendRoomUpdate(roomCode);
     }
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| ROOM UPDATE
+| RESTORE ACTIVE GAME FOR RECONNECTING PLAYERS
 |--------------------------------------------------------------------------
 */
 
-function sendRoomUpdate(
-    roomCode
+function restoreActiveGameForPlayer(
+    socket,
+    room,
+    player
 ) {
-
-    const room =
-        rooms[roomCode];
-
-    if (!room) {
+    if (
+        !room ||
+        !player
+    ) {
         return;
     }
 
+    /*
+    QUIZ
+    */
 
-    io.to(roomCode).emit(
-        "roomUpdate",
-        {
+    if (
+        room.gameType === "quiz" &&
+        room.status === "playing" &&
+        room.questionActive
+    ) {
+        const elapsed =
+            (
+                Date.now() -
+                room.questionStartedAt
+            ) / 1000;
 
-            hostPlayerId:
-                room.hostPlayerId,
+        const remaining =
+            Math.max(
+                0,
+                QUESTION_TIME - elapsed
+            );
 
-            gameType:
-                room.gameType,
+        const question =
+            room.questionSet[
+                room.currentQuestionIndex
+            ];
 
-            gameTitle:
-                getGameTitle(
-                    room.gameType
-                ),
+        if (
+            question &&
+            remaining > 0
+        ) {
+            socket.emit(
+                "newQuestion",
+                {
+                    number:
+                        room.currentQuestionIndex + 1,
 
-            status:
-                room.status,
+                    total:
+                        room.questionSet.length,
 
-            settings:
-                room.settings,
+                    question:
+                        question.question,
 
-            players:
-                room.players.map(
-                    player => ({
+                    answers:
+                        question.answers,
 
-                        id:
-                            player.id,
-
-                        name:
-                            player.name,
-
-                        connected:
-                            player.connected,
-
-                        score:
-                            player.score
-
-                    })
-                )
-
+                    timeLimit:
+                        Math.ceil(
+                            remaining
+                        )
+                }
+            );
         }
-    );
-
-}
-
-
-function sendScores(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
-
-    if (!room) {
-        return;
     }
 
 
-    io.to(roomCode).emit(
-        "scoreUpdate",
-        sortPlayersByScore(
-            room.players
-        ).map(
-            player => ({
+    /*
+    BINGO
+    */
 
-                id:
-                    player.id,
+    if (
+        room.gameType === "bingo" &&
+        room.status === "playing"
+    ) {
+        const card =
+            room.bingoCards[
+                player.id
+            ];
 
-                name:
-                    player.name,
+        if (card) {
+            socket.emit(
+                "bingoCard",
+                {
+                    card
+                }
+            );
+        }
 
-                score:
-                    player.score,
-
-                connected:
-                    player.connected
-
-            })
-        )
-    );
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| HOST MANAGEMENT
-|--------------------------------------------------------------------------
-*/
-
-function assignNewHost(
-    roomCode
-) {
-
-    const room =
-        rooms[roomCode];
-
-    if (!room) {
-        return null;
-    }
-
-
-    const connectedPlayers =
-        getConnectedPlayers(
-            room
-        );
-
-
-    const nextHost =
-        connectedPlayers[0] ||
-        null;
-
-
-    room.hostPlayerId =
-        nextHost
-            ? nextHost.id
-            : null;
-
-
-    if (nextHost) {
-
-        io.to(roomCode).emit(
-            "hostChanged",
+        socket.emit(
+            "bingoStarted",
             {
-                hostPlayerId:
-                    nextHost.id,
+                calledNumbers:
+                    room.bingoCalled || []
+            }
+        );
+    }
 
-                hostName:
-                    nextHost.name
+
+    /*
+    MEMORY
+    */
+
+    if (
+        room.gameType === "memory" &&
+        room.status === "playing"
+    ) {
+        socket.emit(
+            "memoryStarted",
+            {
+                board:
+                    room.memoryBoard.map(
+                        card => ({
+                            id: card.id,
+                            matched: card.matched
+                        })
+                    )
             }
         );
 
+        const currentPlayer =
+            findPlayer(
+                room,
+                room.memoryTurnPlayerId
+            );
+
+        if (currentPlayer) {
+            socket.emit(
+                "memoryTurn",
+                {
+                    playerId:
+                        currentPlayer.id,
+
+                    playerName:
+                        currentPlayer.name
+                }
+            );
+        }
     }
-
-
-    return nextHost;
-
 }
 
 
@@ -2136,30 +1615,21 @@ io.on(
                     settings
                 } = data || {};
 
-
                 if (!playerId) {
-
                     socket.emit(
                         "errorMessage",
                         "Missing player ID."
                     );
-
                     return;
-
                 }
 
-
                 if (!playerName) {
-
                     socket.emit(
                         "errorMessage",
                         "Please enter your name."
                     );
-
                     return;
-
                 }
-
 
                 const selectedGame =
                     GAME_TYPES.includes(
@@ -2168,18 +1638,15 @@ io.on(
                         ? gameType
                         : "quiz";
 
-
                 const roomCode =
                     generateRoomCode();
 
-
                 const room = {
+                    code: roomCode,
 
-                    code:
-                        roomCode,
-
-                    // IMPORTANT:
-                    // The creator is ALWAYS the host.
+                    /*
+                    CREATOR IS ALWAYS HOST.
+                    */
 
                     hostPlayerId:
                         playerId,
@@ -2190,96 +1657,44 @@ io.on(
                     settings:
                         settings || {},
 
-                    status:
-                        "lobby",
+                    status: "lobby",
 
                     players: [],
 
                     questionSet: [],
+                    currentQuestionIndex: 0,
+                    questionActive: false,
+                    questionStartedAt: null,
+                    questionAnswers: {},
+                    nextQuestionTimer: null,
+                    readyTimer: null,
 
-                    currentQuestionIndex:
-                        0,
+                    scrambleWords: [],
+                    currentScrambleWord: null,
+                    scrambleStartedAt: null,
+                    scrambleAnswered: {},
 
-                    questionActive:
-                        false,
+                    puzzleSet: [],
+                    currentPuzzle: null,
+                    puzzleStartedAt: null,
+                    puzzleAnswers: {},
 
-                    questionStartedAt:
-                        null,
+                    bingoCards: {},
+                    bingoCalled: [],
+                    bingoWinner: null,
+                    bingoTimer: null,
 
-                    questionAnswers:
-                        {},
-
-                    nextQuestionTimer:
-                        null,
-
-                    readyTimer:
-                        null,
-
-                    scrambleWords:
-                        [],
-
-                    currentScrambleWord:
-                        null,
-
-                    scrambleStartedAt:
-                        null,
-
-                    scrambleAnswered:
-                        {},
-
-                    puzzleSet:
-                        [],
-
-                    currentPuzzle:
-                        null,
-
-                    puzzleStartedAt:
-                        null,
-
-                    puzzleAnswers:
-                        {},
-
-                    bingoCards:
-                        {},
-
-                    bingoCalled:
-                        [],
-
-                    bingoWinner:
-                        null,
-
-                    bingoTimer:
-                        null,
-
-                    memoryBoard:
-                        [],
-
-                    memoryTurnIndex:
-                        0,
-
-                    memoryTurnPlayerId:
-                        null,
-
-                    memoryFirstCard:
-                        null,
-
-                    memorySecondCard:
-                        null,
-
-                    memoryLocked:
-                        false,
-
-                    memoryTimer:
-                        null
-
+                    memoryBoard: [],
+                    memoryTurnIndex: 0,
+                    memoryTurnPlayerId: null,
+                    memoryFirstCard: null,
+                    memorySecondCard: null,
+                    memoryLocked: false,
+                    memoryTimer: null
                 };
 
-
                 room.players.push({
-
-                    id:
-                        playerId,
-
+                    id: playerId,
                     name:
                         String(
                             playerName
@@ -2288,54 +1703,32 @@ io.on(
                     socketId:
                         socket.id,
 
-                    connected:
-                        true,
-
-                    score:
-                        0,
-
-                    ready:
-                        false,
-
-                    disconnectedAt:
-                        null
-
+                    connected: true,
+                    score: 0,
+                    ready: false,
+                    disconnectedAt: null
                 });
 
+                rooms[roomCode] = room;
 
-                rooms[
-                    roomCode
-                ] =
-                    room;
-
-
-                socket.join(
-                    roomCode
-                );
-
+                socket.join(roomCode);
 
                 socket.emit(
                     "roomCreated",
                     {
                         roomCode,
-
                         gameType:
                             selectedGame,
-
                         playerId
                     }
                 );
 
-
-                sendRoomUpdate(
-                    roomCode
-                );
-
+                sendRoomUpdate(roomCode);
+                sendScores(roomCode);
 
                 console.log(
                     `Room ${roomCode} created by ${playerName} (${selectedGame})`
                 );
-
             }
         );
 
@@ -2356,55 +1749,39 @@ io.on(
                     playerName
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (!room) {
-
                     socket.emit(
                         "errorMessage",
                         "Room not found."
                     );
-
                     return;
-
                 }
 
-
                 if (
-                    room.status !==
-                    "lobby"
+                    room.status !== "lobby"
                 ) {
-
                     socket.emit(
                         "errorMessage",
                         "This game has already started."
                     );
-
                     return;
-
                 }
 
-
                 if (!playerId) {
-
                     socket.emit(
                         "errorMessage",
                         "Missing player ID."
                     );
-
                     return;
-
                 }
-
 
                 let player =
                     findPlayer(
@@ -2412,10 +1789,7 @@ io.on(
                         playerId
                     );
 
-
                 if (player) {
-
-                    // Rejoining the same room.
 
                     player.socketId =
                         socket.id;
@@ -2427,20 +1801,16 @@ io.on(
                         null;
 
                     if (playerName) {
-
                         player.name =
                             String(
                                 playerName
                             ).trim();
-
                     }
 
                 } else {
 
                     player = {
-
-                        id:
-                            playerId,
+                        id: playerId,
 
                         name:
                             String(
@@ -2451,64 +1821,39 @@ io.on(
                         socketId:
                             socket.id,
 
-                        connected:
-                            true,
-
-                        score:
-                            0,
-
-                        ready:
-                            false,
-
-                        disconnectedAt:
-                            null
-
+                        connected: true,
+                        score: 0,
+                        ready: false,
+                        disconnectedAt: null
                     };
-
 
                     room.players.push(
                         player
                     );
-
                 }
 
-
-                socket.join(
-                    code
-                );
-
+                socket.join(code);
 
                 socket.emit(
                     "joinedRoom",
                     {
-                        roomCode:
-                            code,
-
+                        roomCode: code,
                         gameType:
                             room.gameType,
-
                         playerId:
                             player.id
                     }
                 );
 
-
-                sendRoomUpdate(
-                    code
-                );
-
-
-                sendScores(
-                    code
-                );
-
+                sendRoomUpdate(code);
+                sendScores(code);
             }
         );
 
 
         /*
         |--------------------------------------------------------------------------
-        | RECONNECT TO ROOM
+        | RECONNECT
         |--------------------------------------------------------------------------
         */
 
@@ -2521,28 +1866,21 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (!room) {
-
                     socket.emit(
                         "errorMessage",
                         "Room no longer exists."
                     );
-
                     return;
-
                 }
-
 
                 const player =
                     findPlayer(
@@ -2550,18 +1888,13 @@ io.on(
                         playerId
                     );
 
-
                 if (!player) {
-
                     socket.emit(
                         "errorMessage",
                         "Player not found in this room."
                     );
-
                     return;
-
                 }
-
 
                 player.socketId =
                     socket.id;
@@ -2572,16 +1905,11 @@ io.on(
                 player.disconnectedAt =
                     null;
 
-
-                socket.join(
-                    code
-                );
-
+                socket.join(code);
 
                 socket.emit(
                     "reconnected",
                     {
-
                         roomCode:
                             room.code,
 
@@ -2596,89 +1924,17 @@ io.on(
 
                         playerId:
                             player.id
-
                     }
                 );
 
+                sendRoomUpdate(code);
+                sendScores(code);
 
-                sendRoomUpdate(
-                    code
+                restoreActiveGameForPlayer(
+                    socket,
+                    room,
+                    player
                 );
-
-
-                sendScores(
-                    code
-                );
-
-
-                /*
-                |------------------------------------------------------------------
-                | Restore active quiz question
-                |------------------------------------------------------------------
-                */
-
-                if (
-                    room.gameType ===
-                    "quiz" &&
-                    room.status ===
-                    "playing" &&
-                    room.questionActive
-                ) {
-
-                    const elapsed =
-                        (
-                            Date.now() -
-                            room.questionStartedAt
-                        ) / 1000;
-
-
-                    const remaining =
-                        Math.max(
-                            0,
-                            QUESTION_TIME -
-                            elapsed
-                        );
-
-
-                    const question =
-                        room.questionSet[
-                            room.currentQuestionIndex
-                        ];
-
-
-                    if (
-                        question &&
-                        remaining > 0
-                    ) {
-
-                        socket.emit(
-                            "newQuestion",
-                            {
-
-                                number:
-                                    room.currentQuestionIndex + 1,
-
-                                total:
-                                    room.questionSet.length,
-
-                                question:
-                                    question.question,
-
-                                answers:
-                                    question.answers,
-
-                                timeLimit:
-                                    Math.ceil(
-                                        remaining
-                                    )
-
-                            }
-                        );
-
-                    }
-
-                }
-
             }
         );
 
@@ -2698,101 +1954,68 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (!room) {
-
                     socket.emit(
                         "errorMessage",
                         "Room not found."
                     );
-
                     return;
-
                 }
 
+                /*
+                ONLY CREATOR/HOST CAN START.
+                */
 
                 if (
                     room.hostPlayerId !==
                     playerId
                 ) {
-
                     socket.emit(
                         "errorMessage",
                         "Only the host can start the game."
                     );
-
                     return;
-
                 }
 
-
                 if (
-                    room.status !==
-                    "lobby"
+                    room.status !== "lobby"
                 ) {
-
                     socket.emit(
                         "errorMessage",
                         "This room is not in the lobby."
                     );
-
                     return;
-
                 }
 
-
-                const connectedPlayers =
-                    getConnectedPlayers(
-                        room
-                    );
-
-
                 if (
-                    connectedPlayers.length ===
-                    0
+                    getConnectedPlayers(room)
+                        .length === 0
                 ) {
-
                     socket.emit(
                         "errorMessage",
                         "At least one player is required."
                     );
-
                     return;
-
                 }
-
 
                 room.players.forEach(
                     player => {
-
-                        player.ready =
-                            false;
-
-                        player.score =
-                            0;
-
+                        player.ready = false;
+                        player.score = 0;
                     }
                 );
 
+                room.status = "starting";
 
-                room.status =
-                    "starting";
-
-
-                sendRoomUpdate(
-                    code
-                );
-
+                sendRoomUpdate(code);
 
                 io.to(code).emit(
                     "gameStarting",
@@ -2802,6 +2025,9 @@ io.on(
                     }
                 );
 
+                /*
+                The game starts after the ready window.
+                */
 
                 room.readyTimer =
                     setTimeout(
@@ -2815,7 +2041,6 @@ io.on(
                                 return;
                             }
 
-
                             startGameForRoom(
                                 code
                             );
@@ -2823,7 +2048,6 @@ io.on(
                         },
                         GAME_READY_TIMEOUT
                     );
-
             }
         );
 
@@ -2843,21 +2067,17 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
-
 
                 if (!room) {
                     return;
                 }
-
 
                 const player =
                     findPlayer(
@@ -2865,26 +2085,38 @@ io.on(
                         playerId
                     );
 
-
                 if (!player) {
                     return;
                 }
 
-
-                player.ready =
-                    true;
-
+                player.ready = true;
 
                 socket.emit(
                     "gameReadyConfirmed"
                 );
 
+                /*
+                If game is already playing, this is simply
+                a reconnecting player. Restore their screen.
+                */
+
+                if (
+                    room.status ===
+                    "playing"
+                ) {
+                    restoreActiveGameForPlayer(
+                        socket,
+                        room,
+                        player
+                    );
+
+                    return;
+                }
 
                 const connectedPlayers =
                     getConnectedPlayers(
                         room
                     );
-
 
                 const everyoneReady =
                     connectedPlayers.length > 0 &&
@@ -2892,7 +2124,6 @@ io.on(
                         item =>
                             item.ready
                     );
-
 
                 if (
                     room.status ===
@@ -2904,13 +2135,10 @@ io.on(
                         room
                     );
 
-
                     startGameForRoom(
                         code
                     );
-
                 }
-
             }
         );
 
@@ -2931,34 +2159,22 @@ io.on(
                     answerIndex
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (
                     !room ||
-                    room.gameType !==
-                    "quiz"
-                ) {
-                    return;
-                }
-
-
-                if (
-                    room.status !==
-                    "playing" ||
+                    room.gameType !== "quiz" ||
+                    room.status !== "playing" ||
                     !room.questionActive
                 ) {
                     return;
                 }
-
 
                 const player =
                     findPlayer(
@@ -2966,14 +2182,12 @@ io.on(
                         playerId
                     );
 
-
                 if (
                     !player ||
                     !player.connected
                 ) {
                     return;
                 }
-
 
                 if (
                     room.questionAnswers[
@@ -2983,30 +2197,24 @@ io.on(
                     return;
                 }
 
-
                 room.questionAnswers[
                     playerId
-                ] =
-                    true;
-
+                ] = true;
 
                 const question =
                     room.questionSet[
                         room.currentQuestionIndex
                     ];
 
-
                 if (!question) {
                     return;
                 }
-
 
                 const elapsed =
                     (
                         Date.now() -
                         room.questionStartedAt
                     ) / 1000;
-
 
                 const timeRemaining =
                     Math.max(
@@ -3015,23 +2223,16 @@ io.on(
                         elapsed
                     );
 
-
                 const selectedIndex =
-                    Number(
-                        answerIndex
-                    );
-
+                    Number(answerIndex);
 
                 const correct =
                     selectedIndex ===
                     question.correct;
 
-
                 let points = 0;
 
-
                 if (correct) {
-
                     points =
                         500 +
                         Math.round(
@@ -3042,12 +2243,8 @@ io.on(
                             )
                         );
 
-
-                    player.score +=
-                        points;
-
+                    player.score += points;
                 }
-
 
                 socket.emit(
                     "answerResult",
@@ -3057,23 +2254,17 @@ io.on(
                     }
                 );
 
-
-                sendScores(
-                    code
-                );
-
+                sendScores(code);
 
                 const connectedPlayers =
                     getConnectedPlayers(
                         room
                     );
 
-
                 const answeredCount =
                     Object.keys(
                         room.questionAnswers
                     ).length;
-
 
                 if (
                     answeredCount >=
@@ -3083,34 +2274,26 @@ io.on(
                     room.questionActive =
                         false;
 
-
                     clearTimeout(
                         room.nextQuestionTimer
                     );
 
-
                     room.nextQuestionTimer =
                         null;
-
 
                     io.to(code).emit(
                         "questionEnded"
                     );
 
-
-                    nextQuestion(
-                        code
-                    );
-
+                    nextQuestion(code);
                 }
-
             }
         );
 
 
         /*
         |--------------------------------------------------------------------------
-        | WORD SCRAMBLE ANSWER
+        | SCRAMBLE ANSWER
         |--------------------------------------------------------------------------
         */
 
@@ -3124,16 +2307,13 @@ io.on(
                     answer
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
-
 
                 if (
                     !room ||
@@ -3145,13 +2325,11 @@ io.on(
                     return;
                 }
 
-
                 const player =
                     findPlayer(
                         room,
                         playerId
                     );
-
 
                 if (
                     !player ||
@@ -3159,7 +2337,6 @@ io.on(
                 ) {
                     return;
                 }
-
 
                 if (
                     room.scrambleAnswered[
@@ -3169,24 +2346,17 @@ io.on(
                     return;
                 }
 
-
                 room.scrambleAnswered[
                     playerId
-                ] =
-                    true;
-
+                ] = true;
 
                 const correct =
-                    normalizeText(
-                        answer
-                    ) ===
+                    normalizeText(answer) ===
                     normalizeText(
                         room.currentScrambleWord
                     );
 
-
                 let points = 0;
-
 
                 if (correct) {
 
@@ -3196,14 +2366,12 @@ io.on(
                             room.scrambleStartedAt
                         ) / 1000;
 
-
                     const remaining =
                         Math.max(
                             0,
                             SCRAMBLE_TIME -
                             elapsed
                         );
-
 
                     points =
                         500 +
@@ -3215,12 +2383,8 @@ io.on(
                             )
                         );
 
-
-                    player.score +=
-                        points;
-
+                    player.score += points;
                 }
-
 
                 socket.emit(
                     "scrambleResult",
@@ -3230,36 +2394,26 @@ io.on(
                     }
                 );
 
-
-                sendScores(
-                    code
-                );
-
+                sendScores(code);
 
                 if (correct) {
 
                     room.currentQuestionIndex++;
 
-
                     clearTimeout(
                         room.nextQuestionTimer
                     );
 
-
                     room.nextQuestionTimer =
                         setTimeout(
                             () => {
-
                                 sendScrambleWord(
                                     code
                                 );
-
                             },
                             NEXT_QUESTION_DELAY
                         );
-
                 }
-
             }
         );
 
@@ -3280,16 +2434,13 @@ io.on(
                     answerIndex
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
-
 
                 if (
                     !room ||
@@ -3301,13 +2452,11 @@ io.on(
                     return;
                 }
 
-
                 const player =
                     findPlayer(
                         room,
                         playerId
                     );
-
 
                 if (
                     !player ||
@@ -3315,7 +2464,6 @@ io.on(
                 ) {
                     return;
                 }
-
 
                 if (
                     room.puzzleAnswers[
@@ -3325,31 +2473,22 @@ io.on(
                     return;
                 }
 
-
                 room.puzzleAnswers[
                     playerId
-                ] =
-                    true;
-
+                ] = true;
 
                 const puzzle =
                     room.currentPuzzle;
-
 
                 if (!puzzle) {
                     return;
                 }
 
-
                 const correct =
-                    Number(
-                        answerIndex
-                    ) ===
+                    Number(answerIndex) ===
                     puzzle.correct;
 
-
                 let points = 0;
-
 
                 if (correct) {
 
@@ -3359,14 +2498,12 @@ io.on(
                             room.puzzleStartedAt
                         ) / 1000;
 
-
                     const remaining =
                         Math.max(
                             0,
                             PUZZLE_TIME -
                             elapsed
                         );
-
 
                     points =
                         500 +
@@ -3378,12 +2515,8 @@ io.on(
                             )
                         );
 
-
-                    player.score +=
-                        points;
-
+                    player.score += points;
                 }
-
 
                 socket.emit(
                     "puzzleResult",
@@ -3393,17 +2526,12 @@ io.on(
                     }
                 );
 
-
-                sendScores(
-                    code
-                );
-
+                sendScores(code);
 
                 const connectedPlayers =
                     getConnectedPlayers(
                         room
                     );
-
 
                 if (
                     Object.keys(
@@ -3416,31 +2544,25 @@ io.on(
                         room.nextQuestionTimer
                     );
 
-
                     room.currentQuestionIndex++;
-
 
                     room.nextQuestionTimer =
                         setTimeout(
                             () => {
-
                                 sendPuzzle(
                                     code
                                 );
-
                             },
                             NEXT_QUESTION_DELAY
                         );
-
                 }
-
             }
         );
 
 
         /*
         |--------------------------------------------------------------------------
-        | BINGO CLAIM
+        | BINGO
         |--------------------------------------------------------------------------
         */
 
@@ -3453,34 +2575,25 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (
                     !room ||
-                    room.gameType !==
-                    "bingo" ||
-                    room.status !==
-                    "playing"
+                    room.gameType !== "bingo" ||
+                    room.status !== "playing"
                 ) {
                     return;
                 }
 
-
-                if (
-                    room.bingoWinner
-                ) {
+                if (room.bingoWinner) {
                     return;
                 }
-
 
                 const player =
                     findPlayer(
@@ -3488,17 +2601,14 @@ io.on(
                         playerId
                     );
 
-
                 if (!player) {
                     return;
                 }
-
 
                 const card =
                     room.bingoCards[
                         playerId
                     ];
-
 
                 const won =
                     checkBingoWin(
@@ -3506,61 +2616,41 @@ io.on(
                         room.bingoCalled
                     );
 
-
                 if (!won) {
 
                     socket.emit(
                         "bingoResult",
                         {
-                            valid:
-                                false,
-
+                            valid: false,
                             message:
                                 "Not a Bingo yet."
                         }
                     );
 
                     return;
-
                 }
-
 
                 room.bingoWinner =
                     playerId;
 
-
-                player.score +=
-                    3000;
-
+                player.score += 3000;
 
                 clearInterval(
                     room.bingoTimer
                 );
 
-
-                room.bingoTimer =
-                    null;
-
+                room.bingoTimer = null;
 
                 socket.emit(
                     "bingoResult",
                     {
-                        valid:
-                            true,
-
-                        message:
-                            "BINGO!",
-
-                        points:
-                            3000
+                        valid: true,
+                        message: "BINGO!",
+                        points: 3000
                     }
                 );
 
-
-                sendScores(
-                    code
-                );
-
+                sendScores(code);
 
                 io.to(code).emit(
                     "bingoWinner",
@@ -3573,18 +2663,14 @@ io.on(
                     }
                 );
 
-
-                finishGame(
-                    code
-                );
-
+                finishGame(code);
             }
         );
 
 
         /*
         |--------------------------------------------------------------------------
-        | MEMORY CARD FLIP
+        | MEMORY FLIP
         |--------------------------------------------------------------------------
         */
 
@@ -3594,20 +2680,25 @@ io.on(
 
                 const {
                     roomCode,
-                    playerId,
-                    cardId
+                    playerId
                 } = data || {};
 
+                /*
+                game.js currently uses cardIndex.
+                We support both cardIndex and cardId.
+                */
+
+                const suppliedCardId =
+                    data.cardIndex ??
+                    data.cardId;
 
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
-
 
                 if (
                     !room ||
@@ -3619,13 +2710,9 @@ io.on(
                     return;
                 }
 
-
-                if (
-                    room.memoryLocked
-                ) {
+                if (room.memoryLocked) {
                     return;
                 }
-
 
                 if (
                     room.memoryTurnPlayerId !==
@@ -3634,14 +2721,14 @@ io.on(
                     return;
                 }
 
-
                 const card =
                     room.memoryBoard.find(
                         item =>
                             item.id ===
-                            Number(cardId)
+                            Number(
+                                suppliedCardId
+                            )
                     );
-
 
                 if (
                     !card ||
@@ -3649,7 +2736,6 @@ io.on(
                 ) {
                     return;
                 }
-
 
                 if (
                     room.memoryFirstCard &&
@@ -3659,14 +2745,12 @@ io.on(
                     return;
                 }
 
-
                 if (
                     !room.memoryFirstCard
                 ) {
 
                     room.memoryFirstCard =
                         card;
-
 
                     io.to(code).emit(
                         "memoryCardFlipped",
@@ -3679,18 +2763,14 @@ io.on(
                         }
                     );
 
-
                     return;
-
                 }
-
 
                 room.memorySecondCard =
                     card;
 
                 room.memoryLocked =
                     true;
-
 
                 io.to(code).emit(
                     "memoryCardFlipped",
@@ -3703,13 +2783,11 @@ io.on(
                     }
                 );
 
-
                 const first =
                     room.memoryFirstCard;
 
                 const second =
                     room.memorySecondCard;
-
 
                 const player =
                     findPlayer(
@@ -3717,32 +2795,21 @@ io.on(
                         playerId
                     );
 
-
                 if (!player) {
-
                     room.memoryLocked =
                         false;
-
                     return;
-
                 }
-
 
                 if (
                     first.symbol ===
                     second.symbol
                 ) {
 
-                    first.matched =
-                        true;
+                    first.matched = true;
+                    second.matched = true;
 
-                    second.matched =
-                        true;
-
-
-                    player.score +=
-                        1000;
-
+                    player.score += 1000;
 
                     io.to(code).emit(
                         "memoryMatch",
@@ -3753,16 +2820,11 @@ io.on(
                             secondId:
                                 second.id,
 
-                            points:
-                                1000
+                            points: 1000
                         }
                     );
 
-
-                    sendScores(
-                        code
-                    );
-
+                    sendScores(code);
 
                     room.memoryFirstCard =
                         null;
@@ -3773,23 +2835,18 @@ io.on(
                     room.memoryLocked =
                         false;
 
-
                     const remaining =
                         room.memoryBoard.filter(
                             item =>
                                 !item.matched
                         );
 
-
                     if (
-                        remaining.length ===
-                        0
+                        remaining.length === 0
                     ) {
-
                         finishMemoryGame(
                             code
                         );
-
                     }
 
                 } else {
@@ -3804,7 +2861,6 @@ io.on(
                                     return;
                                 }
 
-
                                 io.to(code).emit(
                                     "memoryMismatch",
                                     {
@@ -3816,7 +2872,6 @@ io.on(
                                     }
                                 );
 
-
                                 room.memoryFirstCard =
                                     null;
 
@@ -3826,12 +2881,10 @@ io.on(
                                 room.memoryLocked =
                                     false;
 
-
                                 const players =
                                     getConnectedPlayers(
                                         room
                                     );
-
 
                                 const currentIndex =
                                     players.findIndex(
@@ -3840,12 +2893,10 @@ io.on(
                                             playerId
                                     );
 
-
                                 room.memoryTurnIndex =
                                     currentIndex >= 0
                                         ? currentIndex + 1
                                         : 0;
-
 
                                 moveToNextMemoryPlayer(
                                     code
@@ -3854,9 +2905,7 @@ io.on(
                             },
                             1000
                         );
-
                 }
-
             }
         );
 
@@ -3876,21 +2925,17 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
-
 
                 if (!room) {
                     return;
                 }
-
 
                 const playerIndex =
                     room.players.findIndex(
@@ -3899,60 +2944,50 @@ io.on(
                             playerId
                     );
 
-
                 if (
                     playerIndex === -1
                 ) {
                     return;
                 }
 
-
                 const wasHost =
                     room.hostPlayerId ===
                     playerId;
-
 
                 room.players.splice(
                     playerIndex,
                     1
                 );
 
-
-                if (wasHost) {
-
-                    assignNewHost(
-                        code
-                    );
-
-                }
-
+                /*
+                IMPORTANT:
+                We DO NOT transfer host powers.
+                The original creator remains the
+                only host while the room exists.
+                */
 
                 if (
-                    room.players.length ===
-                    0
+                    room.players.length === 0
                 ) {
 
-                    clearRoomTimers(
-                        room
-                    );
+                    clearRoomTimers(room);
 
-                    delete rooms[
-                        code
-                    ];
+                    delete rooms[code];
 
                     return;
-
                 }
 
+                /*
+                If the creator leaves voluntarily,
+                there is no new host.
+                */
 
-                sendRoomUpdate(
-                    code
-                );
+                if (wasHost) {
+                    room.hostPlayerId = null;
+                }
 
-                sendScores(
-                    code
-                );
-
+                sendRoomUpdate(code);
+                sendScores(code);
             }
         );
 
@@ -3972,128 +3007,68 @@ io.on(
                     playerId
                 } = data || {};
 
-
                 const code =
                     normalizeRoomCode(
                         roomCode
                     );
 
-
                 const room =
                     rooms[code];
 
-
                 if (!room) {
-
                     socket.emit(
                         "errorMessage",
                         "Room not found."
                     );
-
                     return;
-
                 }
-
 
                 if (
                     room.hostPlayerId !==
                     playerId
                 ) {
-
                     socket.emit(
                         "errorMessage",
                         "Only the host can start a rematch."
                     );
-
                     return;
-
                 }
 
+                clearRoomTimers(room);
 
-                clearRoomTimers(
-                    room
-                );
+                room.status = "lobby";
 
+                room.currentQuestionIndex = 0;
 
-                room.status =
-                    "lobby";
+                room.questionSet = [];
+                room.questionAnswers = {};
+                room.questionActive = false;
 
+                room.scrambleWords = [];
+                room.currentScrambleWord = null;
+                room.scrambleAnswered = {};
 
-                room.currentQuestionIndex =
-                    0;
+                room.puzzleSet = [];
+                room.currentPuzzle = null;
+                room.puzzleAnswers = {};
 
+                room.bingoCards = {};
+                room.bingoCalled = [];
+                room.bingoWinner = null;
 
-                room.questionSet =
-                    [];
-
-                room.questionAnswers =
-                    {};
-
-                room.questionActive =
-                    false;
-
-
-                room.scrambleWords =
-                    [];
-
-                room.currentScrambleWord =
-                    null;
-
-                room.scrambleAnswered =
-                    {};
-
-
-                room.puzzleSet =
-                    [];
-
-                room.currentPuzzle =
-                    null;
-
-                room.puzzleAnswers =
-                    {};
-
-
-                room.bingoCards =
-                    {};
-
-                room.bingoCalled =
-                    [];
-
-                room.bingoWinner =
-                    null;
-
-
-                room.memoryBoard =
-                    [];
-
-                room.memoryTurnIndex =
-                    0;
-
-                room.memoryTurnPlayerId =
-                    null;
-
-                room.memoryFirstCard =
-                    null;
-
-                room.memorySecondCard =
-                    null;
-
-                room.memoryLocked =
-                    false;
-
+                room.memoryBoard = [];
+                room.memoryTurnIndex = 0;
+                room.memoryTurnPlayerId = null;
+                room.memoryFirstCard = null;
+                room.memorySecondCard = null;
+                room.memoryLocked = false;
 
                 room.players.forEach(
                     player => {
-
-                        player.score =
-                            0;
-
-                        player.ready =
-                            false;
-
+                        player.score = 0;
+                        player.ready = false;
                     }
                 );
-
 
                 io.to(code).emit(
                     "rematchStarted",
@@ -4103,16 +3078,8 @@ io.on(
                     }
                 );
 
-
-                sendRoomUpdate(
-                    code
-                );
-
-
-                sendScores(
-                    code
-                );
-
+                sendRoomUpdate(code);
+                sendScores(code);
             }
         );
 
@@ -4132,16 +3099,12 @@ io.on(
                     socket.id
                 );
 
-
                 for (
                     const roomCode in rooms
                 ) {
 
                     const room =
-                        rooms[
-                            roomCode
-                        ];
-
+                        rooms[roomCode];
 
                     const player =
                         room.players.find(
@@ -4150,23 +3113,17 @@ io.on(
                                 socket.id
                         );
 
-
                     if (!player) {
                         continue;
                     }
 
-
-                    player.connected =
-                        false;
-
+                    player.connected = false;
                     player.disconnectedAt =
                         Date.now();
-
 
                     sendRoomUpdate(
                         roomCode
                     );
-
 
                     setTimeout(
                         () => {
@@ -4176,13 +3133,11 @@ io.on(
                                     roomCode
                                 ];
 
-
                             if (
                                 !currentRoom
                             ) {
                                 return;
                             }
-
 
                             const currentPlayer =
                                 currentRoom.players.find(
@@ -4191,16 +3146,11 @@ io.on(
                                         player.id
                                 );
 
-
                             if (
                                 !currentPlayer
                             ) {
                                 return;
                             }
-
-
-                            // Player reconnected
-                            // during grace period.
 
                             if (
                                 currentPlayer.connected
@@ -4208,11 +3158,14 @@ io.on(
                                 return;
                             }
 
-
                             const wasHost =
                                 currentRoom.hostPlayerId ===
                                 currentPlayer.id;
 
+                            /*
+                            Remove disconnected player
+                            after grace period.
+                            */
 
                             currentRoom.players =
                                 currentRoom.players.filter(
@@ -4221,40 +3174,41 @@ io.on(
                                         currentPlayer.id
                                 );
 
+                            /*
+                            IMPORTANT:
+                            NEVER give host powers to
+                            another player.
+
+                            If the creator was the host,
+                            the room simply has no host
+                            after they are permanently
+                            removed.
+                            */
 
                             if (wasHost) {
-
-                                assignNewHost(
-                                    roomCode
-                                );
-
+                                currentRoom.hostPlayerId =
+                                    null;
                             }
 
-
                             if (
-                                currentRoom.players.length ===
-                                0
+                                currentRoom.players
+                                    .length === 0
                             ) {
 
                                 clearRoomTimers(
                                     currentRoom
                                 );
 
-
                                 delete rooms[
                                     roomCode
                                 ];
 
-
                                 return;
-
                             }
-
 
                             sendRoomUpdate(
                                 roomCode
                             );
-
 
                             sendScores(
                                 roomCode
@@ -4264,14 +3218,10 @@ io.on(
                         DISCONNECT_GRACE_PERIOD
                     );
 
-
                     break;
-
                 }
-
             }
         );
-
     }
 );
 
@@ -4285,10 +3235,8 @@ io.on(
 server.listen(
     PORT,
     () => {
-
         console.log(
             `Game Space server running on port ${PORT}`
         );
-
     }
 );
